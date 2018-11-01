@@ -1,6 +1,7 @@
 package com.example.szymon.coinz
 
 
+import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.media.CamcorderProfile
@@ -19,6 +20,7 @@ import com.mapbox.android.core.location.LocationEnginePriority
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.geojson.FeatureCollection
 
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
@@ -36,14 +38,25 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineListener, PermissionsListener {
 
     private var mAuth: FirebaseAuth? = null
 
     private val tag = "MainActivity"
+
+    private var downloadError = false
+    private var downloadDate = "" // YYYY/MM/DD
+    private var currentDate = ""
+    private var preferencesFile = "MyPrefsFile" // for storing preferences
+
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
+    private var coinzMapUrlPrefix = "http://homepages.inf.ed.ac.uk/stg/coinz/"
+    private var coinzMapUrlSufix = "/coinzmap.geojson"
+    private var coinzMapData: String = ""
 
     private lateinit var originLocation : Location
     private lateinit var permissionsManager : PermissionsManager
@@ -54,6 +67,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+
+
 
         //fab.setOnClickListener { view ->
         //    Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -77,6 +92,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
 
+
+
     }
 
 
@@ -84,11 +101,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         if (mapboxMap == null) {
             Log.d(tag, "[onMapReady] mapboxMap is null")
         } else {
+            Log.d(tag, "[onMapReady] mapboxMap is ready")
             map = mapboxMap
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
 
             enableLocation()
+            displayMarkers()
         }
     }
 
@@ -102,6 +121,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             permissionsManager = PermissionsManager(this)
             permissionsManager.requestLocationPermissions(this)
         }
+    }
+
+    private fun displayMarkers() {
+        var features = FeatureCollection.fromJson(coinzMapData).features()
+
     }
 
     @SuppressWarnings("MissingPermission")
@@ -174,8 +198,33 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         }
     }
 
+    private fun onSuccessfulDownload() {
+        coinzMapData = DownloadCompleteRunner.result!!
+        //Log.d(tag, coinzMapData)
+        applicationContext.openFileOutput("coinzmap.geojson", Context.MODE_PRIVATE).use {
+            it.write(coinzMapData.toByteArray())
+        }
+    }
+
     public override fun onStart() {
         super.onStart()
+        val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
+        downloadDate = settings.getString("lastDownloadDate", "")!!
+        Log.d(tag, "[onStart] Recalled lastDownloadDate is '$downloadDate'")
+
+        currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
+        Log.d(tag, "[onCreate] Current date is: $currentDate")
+        if (currentDate != downloadDate) {
+            val coinzMapUrl = coinzMapUrlPrefix + currentDate + coinzMapUrlSufix
+            DownloadFileTask(DownloadCompleteRunner).execute(coinzMapUrl)
+        } else {
+            Log.d(tag, "[onStart] geoJSON maps are up to date")
+            coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
+            //Log.d(tag, coinzMapData)
+            Log.d(tag, getFilesDir().absolutePath)
+            displayMarkers()
+        }
+
         mapView?.onStart()
     }
 
@@ -191,10 +240,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     public override fun onStop() {
         super.onStop()
+
+        Log.d(tag, "[onStop] Storing lastDownloadDate of '$downloadDate'")
+        val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
+        val editor = settings.edit()
+        editor.putString("lastDownloadDate", downloadDate)
+        editor.apply()
+
         mapView?.onStop()
     }
 
-    public override fun onLowMemory() {
+    override fun onLowMemory() {
         super.onLowMemory()
         mapView?.onLowMemory()
     }
@@ -236,15 +292,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         var result : String? = null
         override fun downloadComplete(result: String) {
             this.result = result
+            Log.d("MainActivity", "[downloadComplete] Download complete")
+            // Log.d("MainActivity", this.result)
         }
     }
 
-    class DownloadFileTask(private val caller : DownloadCompleteListener):
+    inner class DownloadFileTask(private val caller : DownloadCompleteListener):
             AsyncTask<String, Void, String>() {
         override fun doInBackground(vararg urls: String): String = try {
+            Log.d("MainActivity", "[DownloadFileTask] Trying to download file")
             loadFileFromNetwork(urls[0])
         } catch (e: IOException) {
-            "Unable to load content, Check your network connection"
+            downloadError = true
+            "$e Unable to load content, Check your network connection"
         }
 
         private fun loadFileFromNetwork(urlString: String): String {
@@ -268,8 +328,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
         override fun onPostExecute(result: String) {
             super.onPostExecute(result)
-
+            if(!downloadError) {
+                downloadDate = currentDate
+            }
             caller.downloadComplete(result)
+            onSuccessfulDownload()
         }
 
     } //end class DownloadFileTask
