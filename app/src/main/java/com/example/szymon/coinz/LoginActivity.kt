@@ -23,6 +23,9 @@ import android.widget.TextView
 
 import java.util.ArrayList
 import android.Manifest.permission.READ_CONTACTS
+import android.content.Intent
+import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_login.*
 
 import kotlinx.android.synthetic.main.activity_sign_up.*
@@ -34,7 +37,12 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
+
+    private val tag = "Login Activity"
+
     private var mAuthTask: UserLoginTask? = null
+
+    private var mAuth: FirebaseAuth? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +56,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             }
             false
         })
-
+        mAuth = FirebaseAuth.getInstance()
         email_sign_in_button.setOnClickListener { attemptLogin() }
     }
 
@@ -112,7 +120,7 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         var focusView: View? = null
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(passwordStr) && !isPasswordValid(passwordStr)) {
+        if (TextUtils.isEmpty(passwordStr) || !isPasswordValid(passwordStr)) {
             login_password.error = getString(R.string.error_invalid_password)
             focusView = login_password
             cancel = true
@@ -137,8 +145,28 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true)
-            mAuthTask = UserLoginTask(emailStr, passwordStr)
-            mAuthTask!!.execute(null as Void?)
+            //mAuthTask = UserLoginTask(emailStr, passwordStr)
+            //mAuthTask!!.execute(null as Void?)
+
+            mAuth?.signInWithEmailAndPassword(emailStr, passwordStr)
+                    ?.addOnCompleteListener {
+                        showProgress(false)
+                        if(!it.isSuccessful) {
+                            Log.d(tag, "Unsuccessful log in")
+                            login_password.error = getString(R.string.error_incorrect_password)
+                            login_password.requestFocus()
+
+                            return@addOnCompleteListener
+                        }
+
+                        //else if successful
+                        Log.d(tag, "Successfully logged in user with uid: ${it.result?.user?.uid}")
+                        startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                    }
+                    ?.addOnFailureListener {
+                        Log.d(tag, "Failed to log in user: ${it.message}")
+                    }
+
         }
     }
 

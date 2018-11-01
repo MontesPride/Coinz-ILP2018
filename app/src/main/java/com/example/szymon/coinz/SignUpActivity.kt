@@ -27,6 +27,7 @@ import android.content.Intent
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_sign_up.*
@@ -40,7 +41,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
      * Keep track of the login task to ensure we can cancel it if requested.
      */
 
-    private val tag = "Login Activity"
+    private val tag = "SignUp Activity"
 
     private var mAuthTask: UserLoginTask? = null
 
@@ -59,9 +60,11 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             false
         })
 
+        mAuth = FirebaseAuth.getInstance()
+
         email_sign_up_button.setOnClickListener { attemptLogin() }
 
-        mAuth = FirebaseAuth.getInstance()
+
 
     }
 
@@ -124,6 +127,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
         var cancel = false
         var focusView: View? = null
+        var success = false
 
         // Check for a valid password, if the user entered one.
         if (TextUtils.isEmpty(passwordStr) || !isPasswordValid(passwordStr)) {
@@ -158,10 +162,55 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true)
-            mAuthTask = UserLoginTask(emailStr, passwordStr)
-            mAuthTask!!.execute(null as Void?)
+            //mAuthTask = UserLoginTask(emailStr, passwordStr)
+            //mAuthTask!!.execute(null as Void?)
 
+            mAuth?.createUserWithEmailAndPassword(emailStr, passwordStr)
+                    ?.addOnCompleteListener {
+                        showProgress(false)
+                        if (!it.isSuccessful) {
+                            signup_password.error = getString(R.string.error_incorrect_password)
+                            signup_password.requestFocus()
 
+                            return@addOnCompleteListener
+                        }
+
+                        //else if successful
+                        Log.d(tag, "Successfully created user with uid: ${it.result?.user?.uid}")
+                        success = true
+
+                        val user = FirebaseAuth.getInstance().currentUser
+
+                        val profileUpdates = UserProfileChangeRequest.Builder()
+                                .setDisplayName(usernameStr)
+                                .build()
+
+                        user?.updateProfile(profileUpdates)
+                                ?.addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        Log.d(tag, "User profile updated.")
+                                    }
+                                }
+                        //mAuth = null
+                        startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
+                    }
+                    ?.addOnFailureListener {
+                        Log.d(tag, "Failed to create user: ${it.message}")
+                    }
+            if (success) {
+                val user = FirebaseAuth.getInstance().currentUser
+
+                val profileUpdates = UserProfileChangeRequest.Builder()
+                        .setDisplayName(usernameStr)
+                        .build()
+
+                user?.updateProfile(profileUpdates)
+                        ?.addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Log.d(tag, "User profile updated.")
+                            }
+                        }
+            }
         }
     }
 

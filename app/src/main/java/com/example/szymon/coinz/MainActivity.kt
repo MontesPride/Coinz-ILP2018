@@ -55,9 +55,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+        //fab.setOnClickListener { view ->
+        //    Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+        //           .setAction("Action", null).show()
+        //}
+
+        fab.setOnClickListener {view ->
+            Snackbar.make(view, "${FirebaseAuth.getInstance().currentUser?.displayName}", Snackbar.LENGTH_LONG).show()
         }
 
         goToLogin.setOnClickListener {
@@ -72,8 +76,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         mapView = findViewById(R.id.mapboxMapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
-
-        mAuth = FirebaseAuth.getInstance()
 
     }
 
