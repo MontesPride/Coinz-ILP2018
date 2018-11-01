@@ -1,6 +1,7 @@
 package com.example.szymon.coinz
 
 
+import android.content.Intent
 import android.location.Location
 import android.media.CamcorderProfile
 import android.os.AsyncTask
@@ -11,6 +12,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import com.google.firebase.auth.FirebaseAuth
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
 import com.mapbox.android.core.location.LocationEnginePriority
@@ -37,6 +39,8 @@ import java.net.URL
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineListener, PermissionsListener {
 
+    private var mAuth: FirebaseAuth? = null
+
     private val tag = "MainActivity"
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
@@ -56,12 +60,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     .setAction("Action", null).show()
         }
 
+        goToLogin.setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+        }
+
+        goToSignUp.setOnClickListener {
+            startActivity(Intent(this, SignUpActivity::class.java))
+        }
+
         Mapbox.getInstance(applicationContext, getString(R.string.access_token))
         mapView = findViewById(R.id.mapboxMapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
 
+        mAuth = FirebaseAuth.getInstance()
+
     }
+
 
     override fun onMapReady(mapboxMap: MapboxMap?) {
         if (mapboxMap == null) {
@@ -132,6 +147,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         if (location == null) {
             Log.d(tag, "[onLocationChanged] location is null")
         } else {
+            Log.d(tag, "[onLocationChanged] location changed")
             originLocation = location
             setCameraPosition(originLocation)
         }
