@@ -9,10 +9,12 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.support.design.widget.Snackbar
+import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
@@ -24,6 +26,8 @@ import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
 
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.annotations.Icon
+import com.mapbox.mapboxsdk.annotations.IconFactory
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -104,9 +108,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         mapView = findViewById(R.id.mapboxMapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
-
-
-
     }
 
 
@@ -116,6 +117,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         } else {
             Log.d(tag, "[onMapReady] mapboxMap is ready")
             map = mapboxMap
+
+
+
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
 
@@ -161,12 +165,28 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             val coordinatesAsLatLng = LatLng(coordinatesAsList[1], coordinatesAsList[0])
             val currencyName = featureProperties!!["currency"].asString
             val currencyValue = featureProperties["value"].asString
+            val markerColor = featureProperties["marker-color"].asString
+            //Log.d(tag, "markerColor = $markerColor")
             //Log.d(tag, "$currencyName $currencyValue")
+            var icon: Icon
+            when (markerColor) {
+                "#ff0000" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.mapbox_marker_icon_default)
+                "#008000" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker)
+                "#0000ff" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker)
+                "#ffdf00" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker)
+                else -> icon = IconFactory.getInstance(this).fromResource(R.drawable.purple_marker)
+            }
 
-            map?.addMarker(MarkerOptions().position(coordinatesAsLatLng).title(currencyName).snippet(currencyValue))
+            map?.addMarker(MarkerOptions()
+                    .position(coordinatesAsLatLng)
+                    .title(currencyName)
+                    .snippet(currencyValue)
+                    .icon(icon))
         }
 
     }
+
+
 
     @SuppressWarnings("MissingPermission")
     private fun initaliseLocationEngine() {

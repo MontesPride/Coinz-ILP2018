@@ -375,6 +375,11 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         }
     }
 
+    override fun onBackPressed() {
+        super.onBackPressed()
+        moveTaskToBack(true)
+    }
+
     companion object {
 
         /**
