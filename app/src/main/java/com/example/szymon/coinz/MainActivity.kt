@@ -21,8 +21,10 @@ import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.geojson.FeatureCollection
+import com.mapbox.geojson.Point
 
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapView
@@ -40,6 +42,10 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineListener, PermissionsListener {
 
@@ -87,6 +93,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             startActivity(Intent(this, SignUpActivity::class.java))
         }
 
+        signOut.setOnClickListener {
+            FirebaseAuth.getInstance().signOut()
+            Snackbar.make(it, "${FirebaseAuth.getInstance().currentUser?.uid}", Snackbar.LENGTH_LONG).show()
+        }
+
+        displayMarkersButton.setOnClickListener { displayMarkers() }
+
         Mapbox.getInstance(applicationContext, getString(R.string.access_token))
         mapView = findViewById(R.id.mapboxMapView)
         mapView?.onCreate(savedInstanceState)
@@ -124,7 +137,34 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     }
 
     private fun displayMarkers() {
-        var features = FeatureCollection.fromJson(coinzMapData).features()
+        /*var features = FeatureCollection.fromJson(coinzMapData).features()
+        var feature = features!![0]
+        var featureGeometry = feature.geometry().takeIf { it?.type() == "Point" }
+        //Log.d(tag, features.toString())
+        Log.d(tag, featureGeometry.toString())
+        var pnt = featureGeometry as Point
+        Log.d(tag, "$feature")
+        //Log.d(tag, "${pnt.coordinates().}")
+        var coords = LatLng(pnt.coordinates()[1], pnt.coordinates()[0])
+        var properties = feature.properties()!!["id"]
+        var currencyName = feature.properties()!!["currency"]
+        var currencyValue = feature.properties()!!["value"]
+        Log.d(tag, properties.toString())
+
+        map?.addMarker(MarkerOptions().position(coords).title(currencyName.toString()).snippet(currencyValue.toString()))*/
+
+        val featureList = FeatureCollection.fromJson(coinzMapData).features()
+        for (feature in featureList!!) {
+            val featureGeometry = feature.geometry().takeIf { it?.type() == "Point" } as Point
+            val featureProperties = feature.properties()
+            val coordinatesAsList = featureGeometry.coordinates()
+            val coordinatesAsLatLng = LatLng(coordinatesAsList[1], coordinatesAsList[0])
+            val currencyName = featureProperties!!["currency"].asString
+            val currencyValue = featureProperties["value"].asString
+            //Log.d(tag, "$currencyName $currencyValue")
+
+            map?.addMarker(MarkerOptions().position(coordinatesAsLatLng).title(currencyName).snippet(currencyValue))
+        }
 
     }
 
@@ -208,6 +248,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     public override fun onStart() {
         super.onStart()
+        if (FirebaseAuth.getInstance().currentUser?.uid == null) {
+            startActivity(Intent(this, SignUpActivity::class.java))
+        }
         val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
         downloadDate = settings.getString("lastDownloadDate", "")!!
         Log.d(tag, "[onStart] Recalled lastDownloadDate is '$downloadDate'")
@@ -222,14 +265,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
             //Log.d(tag, coinzMapData)
             Log.d(tag, getFilesDir().absolutePath)
-            displayMarkers()
+            //displayMarkers()
         }
 
         mapView?.onStart()
     }
 
+    override fun onBackPressed() {
+        super.onBackPressed()
+        moveTaskToBack(true)
+    }
+
     public override fun onResume() {
         super.onResume()
+        if (FirebaseAuth.getInstance().currentUser?.uid == null) {
+            startActivity(Intent(this, SignUpActivity::class.java))
+        }
         mapView?.onResume()
     }
 

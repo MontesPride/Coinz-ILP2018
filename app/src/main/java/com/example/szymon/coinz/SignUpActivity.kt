@@ -30,6 +30,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 
 import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import org.w3c.dom.Text
 
@@ -59,6 +60,10 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             }
             false
         })
+
+        go_to_login.setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+        }
 
         mAuth = FirebaseAuth.getInstance()
 
@@ -357,7 +362,17 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     public override fun onStart() {
         super.onStart()
         var currentUser: FirebaseUser? = mAuth?.currentUser
+        if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+            startActivity(Intent(this, MainActivity::class.java))
+        }
         //updateUI(currentUser)
+    }
+
+    public override fun onResume() {
+        super.onResume()
+        if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+            startActivity(Intent(this, MainActivity::class.java))
+        }
     }
 
     companion object {

@@ -56,6 +56,9 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             }
             false
         })
+
+        go_back_to_signup.setOnClickListener { finish() }
+
         mAuth = FirebaseAuth.getInstance()
         email_sign_in_button.setOnClickListener { attemptLogin() }
     }
@@ -305,6 +308,20 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         override fun onCancelled() {
             mAuthTask = null
             showProgress(false)
+        }
+    }
+
+    public override fun onStart() {
+        super.onStart()
+        if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+            startActivity(Intent(this, MainActivity::class.java))
+        }
+    }
+
+    public override fun onResume() {
+        super.onResume()
+        if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+            startActivity(Intent(this, MainActivity::class.java))
         }
     }
 
