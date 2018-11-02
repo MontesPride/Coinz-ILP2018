@@ -22,12 +22,14 @@ import com.mapbox.android.core.location.LocationEnginePriority
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
 
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.annotations.Icon
 import com.mapbox.mapboxsdk.annotations.IconFactory
+import com.mapbox.mapboxsdk.annotations.Marker
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -37,6 +39,8 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.CameraMode
 import com.mapbox.mapboxsdk.plugins.locationlayer.modes.RenderMode
+import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
+import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
 
 
 import kotlinx.android.synthetic.main.activity_main.*
@@ -50,6 +54,9 @@ import java.time.format.DateTimeFormatter
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineListener, PermissionsListener {
 
@@ -64,6 +71,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     private var mapView: MapView? = null
     private var map: MapboxMap? = null
+    private var navigationMapRoute: NavigationMapRoute? = null
+    private var currentDestination: Point? = null
     private var coinzMapUrlPrefix = "http://homepages.inf.ed.ac.uk/stg/coinz/"
     private var coinzMapUrlSufix = "/coinzmap.geojson"
     private var coinzMapData: String = ""
@@ -110,21 +119,62 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         mapView?.getMapAsync(this)
     }
 
-
     override fun onMapReady(mapboxMap: MapboxMap?) {
         if (mapboxMap == null) {
             Log.d(tag, "[onMapReady] mapboxMap is null")
         } else {
             Log.d(tag, "[onMapReady] mapboxMap is ready")
             map = mapboxMap
-
-
-
+            map?.setOnMarkerClickListener { marker ->
+                if (this::originLocation.isInitialized) {
+                    Log.d(tag, "[onMarkerClick] originLocation initalized")
+                    val originLocationAsPoint = Point.fromLngLat(originLocation.longitude, originLocation.latitude)
+                    val destinationLocationAsPoint = Point.fromLngLat(marker.position.longitude, marker.position.latitude)
+                    getRoute(originLocationAsPoint, destinationLocationAsPoint)
+                } else {
+                    Log.d(tag, "[onMarkerClick] originLocation not initalized")
+                }
+                false
+            }
             map?.uiSettings?.isCompassEnabled = true
             map?.uiSettings?.isZoomControlsEnabled = true
 
             enableLocation()
             displayMarkers()
+        }
+    }
+
+    private fun getRoute(origin: Point, destination: Point) {
+        if (destination == currentDestination && navigationMapRoute != null) {
+            navigationMapRoute?.removeRoute()
+            currentDestination = null
+        } else {
+            currentDestination = destination
+
+            NavigationRoute.builder()
+                    .accessToken(getString(R.string.access_token))
+                    .origin(origin)
+                    .destination(destination)
+                    .build()
+                    .getRoute(object: Callback<DirectionsResponse> {
+                        override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>) {
+                            val routeResponse = response ?: return
+                            val body = routeResponse.body() ?: return
+                            if (body.routes().count() == 0) {
+                                Log.d(tag, "[getRoute] No routes found")
+                                return
+                            }
+                            if (navigationMapRoute != null) {
+                                navigationMapRoute?.removeRoute()
+                            } else {
+                                navigationMapRoute = NavigationMapRoute(null, mapView!!, map!!)
+                            }
+                            navigationMapRoute?.addRoute(body.routes().first())
+                        }
+                        override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+                            Log.d(tag, "[getRoute onFailure] Error: ${t.message}")
+                        }
+                    })
         }
     }
 
@@ -141,22 +191,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     }
 
     private fun displayMarkers() {
-        /*var features = FeatureCollection.fromJson(coinzMapData).features()
-        var feature = features!![0]
-        var featureGeometry = feature.geometry().takeIf { it?.type() == "Point" }
-        //Log.d(tag, features.toString())
-        Log.d(tag, featureGeometry.toString())
-        var pnt = featureGeometry as Point
-        Log.d(tag, "$feature")
-        //Log.d(tag, "${pnt.coordinates().}")
-        var coords = LatLng(pnt.coordinates()[1], pnt.coordinates()[0])
-        var properties = feature.properties()!!["id"]
-        var currencyName = feature.properties()!!["currency"]
-        var currencyValue = feature.properties()!!["value"]
-        Log.d(tag, properties.toString())
-
-        map?.addMarker(MarkerOptions().position(coords).title(currencyName.toString()).snippet(currencyValue.toString()))*/
-
         val featureList = FeatureCollection.fromJson(coinzMapData).features()
         for (feature in featureList!!) {
             val featureGeometry = feature.geometry().takeIf { it?.type() == "Point" } as Point
@@ -166,8 +200,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             val currencyName = featureProperties!!["currency"].asString
             val currencyValue = featureProperties["value"].asString
             val markerColor = featureProperties["marker-color"].asString
-            //Log.d(tag, "markerColor = $markerColor")
-            //Log.d(tag, "$currencyName $currencyValue")
             var icon: Icon
             when (markerColor) {
                 "#ff0000" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.mapbox_marker_icon_default)
@@ -183,7 +215,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     .snippet(currencyValue)
                     .icon(icon))
         }
-
     }
 
 
@@ -276,18 +307,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         Log.d(tag, "[onStart] Recalled lastDownloadDate is '$downloadDate'")
 
         currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
-        Log.d(tag, "[onCreate] Current date is: $currentDate")
         if (currentDate != downloadDate) {
             val coinzMapUrl = coinzMapUrlPrefix + currentDate + coinzMapUrlSufix
             DownloadFileTask(DownloadCompleteRunner).execute(coinzMapUrl)
         } else {
             Log.d(tag, "[onStart] geoJSON maps are up to date")
             coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
-            //Log.d(tag, coinzMapData)
-            Log.d(tag, getFilesDir().absolutePath)
             //displayMarkers()
         }
-
         mapView?.onStart()
     }
 
@@ -352,7 +379,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)
         }
-
     }
 
     interface DownloadCompleteListener {

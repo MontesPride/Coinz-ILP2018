@@ -178,44 +178,27 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                             signup_password.requestFocus()
 
                             return@addOnCompleteListener
-                        }
+                        } else {
+                            Log.d(tag, "Successfully created user with uid: ${it.result?.user?.uid}")
 
-                        //else if successful
-                        Log.d(tag, "Successfully created user with uid: ${it.result?.user?.uid}")
-                        success = true
+                            val user = FirebaseAuth.getInstance().currentUser
 
-                        val user = FirebaseAuth.getInstance().currentUser
+                            val profileUpdates = UserProfileChangeRequest.Builder()
+                                    .setDisplayName(usernameStr)
+                                    .build()
 
-                        val profileUpdates = UserProfileChangeRequest.Builder()
-                                .setDisplayName(usernameStr)
-                                .build()
-
-                        user?.updateProfile(profileUpdates)
-                                ?.addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        Log.d(tag, "User profile updated.")
+                            user?.updateProfile(profileUpdates)
+                                    ?.addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            Log.d(tag, "User profile updated.")
+                                        }
                                     }
-                                }
-                        //mAuth = null
-                        startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
+                            startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
+                        }
                     }
                     ?.addOnFailureListener {
                         Log.d(tag, "Failed to create user: ${it.message}")
                     }
-            if (success) {
-                val user = FirebaseAuth.getInstance().currentUser
-
-                val profileUpdates = UserProfileChangeRequest.Builder()
-                        .setDisplayName(usernameStr)
-                        .build()
-
-                user?.updateProfile(profileUpdates)
-                        ?.addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                Log.d(tag, "User profile updated.")
-                            }
-                        }
-            }
         }
     }
 
