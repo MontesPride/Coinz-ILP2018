@@ -25,6 +25,7 @@ import java.util.ArrayList
 import android.Manifest.permission.READ_CONTACTS
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -174,9 +175,11 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                     ?.addOnCompleteListener {
                         showProgress(false)
                         if (!it.isSuccessful) {
-                            signup_password.error = getString(R.string.error_incorrect_password)
-                            signup_password.requestFocus()
 
+                            when (it.exception?.message) {
+                                getString(R.string.error_firebase_no_network_connection) -> Toast.makeText(this, getString(R.string.error_no_network_connection), Toast.LENGTH_LONG).show()
+                                else -> Toast.makeText(this, getString(R.string.error_something_else_wrong), Toast.LENGTH_LONG).show()
+                            }
                             return@addOnCompleteListener
                         } else {
                             Log.d(tag, "Successfully created user with uid: ${it.result?.user?.uid}")
@@ -197,6 +200,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                         }
                     }
                     ?.addOnFailureListener {
+                        showProgress(false)
                         Log.d(tag, "Failed to create user: ${it.message}")
                     }
         }

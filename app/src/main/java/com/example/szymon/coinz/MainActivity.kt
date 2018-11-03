@@ -8,6 +8,7 @@ import android.media.CamcorderProfile
 import android.os.AsyncTask
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.support.constraint.ConstraintLayout
 import android.support.design.widget.Snackbar
 import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v7.app.AppCompatActivity
@@ -44,6 +45,7 @@ import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
 
 
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -60,8 +62,6 @@ import retrofit2.Response
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineListener, PermissionsListener {
 
-    private var mAuth: FirebaseAuth? = null
-
     private val tag = "MainActivity"
 
     private var downloadError = false
@@ -76,6 +76,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private var coinzMapUrlPrefix = "http://homepages.inf.ed.ac.uk/stg/coinz/"
     private var coinzMapUrlSufix = "/coinzmap.geojson"
     private var coinzMapData: String = ""
+
+    private var locationServicesDisabledSnackbar: Snackbar? = null
+    private var isItStart = true
+    private var fromStop = false
 
     private lateinit var originLocation : Location
     private lateinit var permissionsManager : PermissionsManager
@@ -111,7 +115,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Snackbar.make(it, "${FirebaseAuth.getInstance().currentUser?.uid}", Snackbar.LENGTH_LONG).show()
         }
 
-        displayMarkersButton.setOnClickListener { displayMarkers() }
+        //displayMarkersButton.setOnClickListener { displayMarkers() }
 
         Mapbox.getInstance(applicationContext, getString(R.string.access_token))
         mapView = findViewById(R.id.mapboxMapView)
@@ -180,11 +184,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     private fun enableLocation(){
         if(PermissionsManager.areLocationPermissionsGranted(this)){
-            Log.d(tag, "Permissions are granted")
+            Log.d(tag, "[enableLocation] Permissions are granted")
             initaliseLocationEngine()
             initialiseLocationLayer()
         } else {
-            Log.d(tag, "Permissions are not granted")
+            Log.d(tag, "[enableLocation] Permissions are not granted")
             permissionsManager = PermissionsManager(this)
             permissionsManager.requestLocationPermissions(this)
         }
@@ -208,7 +212,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                 "#ffdf00" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker)
                 else -> icon = IconFactory.getInstance(this).fromResource(R.drawable.purple_marker)
             }
-
             map?.addMarker(MarkerOptions()
                     .position(coordinatesAsLatLng)
                     .title(currencyName)
@@ -277,7 +280,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     }
 
     override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
-        Log.d(tag, "Permissions: $permissionsToExplain")
+        Log.d(tag, "[onExplanationNeeded] Permissions: $permissionsToExplain")
     }
 
     override fun onPermissionResult(granted: Boolean) {
@@ -291,7 +294,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     private fun onSuccessfulDownload() {
         coinzMapData = DownloadCompleteRunner.result!!
-        //Log.d(tag, coinzMapData)
         applicationContext.openFileOutput("coinzmap.geojson", Context.MODE_PRIVATE).use {
             it.write(coinzMapData.toByteArray())
         }
@@ -313,7 +315,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         } else {
             Log.d(tag, "[onStart] geoJSON maps are up to date")
             coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
-            //displayMarkers()
         }
         mapView?.onStart()
     }
@@ -325,6 +326,28 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     public override fun onResume() {
         super.onResume()
+        if (fromStop) {
+            fromStop = false
+            enableLocation()
+        }
+        if(PermissionsManager.areLocationPermissionsGranted(this)){
+            Log.d(tag, "[onResume] Permissions are granted")
+            initaliseLocationEngine()
+            initialiseLocationLayer()
+            if (locationServicesDisabledSnackbar?.isShown == true) {
+                locationServicesDisabledSnackbar?.dismiss()
+            }
+        } else {
+            Log.d(tag, "[onResume] Permissions are not granted")
+            if (isItStart) {
+                isItStart = false
+            } else {
+                locationServicesDisabledSnackbar = Snackbar.make(mapboxMapView, getString(R.string.error_location_services_disabled), Snackbar.LENGTH_INDEFINITE)
+                if (locationServicesDisabledSnackbar?.isShown != true) {
+                    locationServicesDisabledSnackbar?.show()
+                }
+            }
+        }
         if (FirebaseAuth.getInstance().currentUser?.uid == null) {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
@@ -333,12 +356,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     public override fun onPause() {
         super.onPause()
+        if (locationServicesDisabledSnackbar?.isShown == true) {
+            locationServicesDisabledSnackbar?.dismiss()
+        }
         mapView?.onPause()
     }
 
     public override fun onStop() {
         super.onStop()
-
+        fromStop = true
         Log.d(tag, "[onStop] Storing lastDownloadDate of '$downloadDate'")
         val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
         val editor = settings.edit()

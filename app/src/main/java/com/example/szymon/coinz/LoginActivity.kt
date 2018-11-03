@@ -25,6 +25,7 @@ import java.util.ArrayList
 import android.Manifest.permission.READ_CONTACTS
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_login.*
 
@@ -156,17 +157,26 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                         showProgress(false)
                         if(!it.isSuccessful) {
                             Log.d(tag, "Unsuccessful log in")
-                            login_password.error = getString(R.string.error_incorrect_password)
-                            login_password.requestFocus()
-
+                            when (it.exception?.message) {
+                                getString(R.string.error_firebase_no_network_connection) -> Toast.makeText(this, getString(R.string.error_no_network_connection), Toast.LENGTH_LONG).show()
+                                getString(R.string.error_firebase_incorrect_email) -> {
+                                    login_email.error = getString(R.string.error_incorrect_email)
+                                    login_email.requestFocus()
+                                }
+                                getString(R.string.error_firebase_incorrect_password) -> {
+                                    login_password.error = getString(R.string.error_incorrect_password)
+                                    login_password.requestFocus()
+                                }
+                                else -> Toast.makeText(this, getString(R.string.error_something_else_wrong), Toast.LENGTH_LONG).show()
+                            }
                             return@addOnCompleteListener
+                        } else {
+                            Log.d(tag, "Successfully logged in user with uid: ${it.result?.user?.uid}")
+                            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                         }
-
-                        //else if successful
-                        Log.d(tag, "Successfully logged in user with uid: ${it.result?.user?.uid}")
-                        startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                     }
                     ?.addOnFailureListener {
+                        showProgress(false)
                         Log.d(tag, "Failed to log in user: ${it.message}")
                     }
 

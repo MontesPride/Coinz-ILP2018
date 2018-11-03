@@ -14,6 +14,13 @@
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_incorrect_email">We can\'t find that account</string>
+    <string name="error_no_network_connection">Check your network connection</string>
+    <string name="error_firebase_no_network_connection">A network error (such as timeout, interrupted connection or unreachable host) has occurred.</string>
+    <string name="error_firebase_incorrect_email">There is no user record corresponding to this identifier. The user may have been deleted.</string>
+    <string name="error_firebase_incorrect_password">The password is invalid or the user does not have a password.</string>
+    <string name="error_something_else_wrong">Something went wrong, try again later.</string>
+    <string name="error_location_services_disabled">Enable location services to play the game.</string>
     <string name="error_field_required">This field is required</string>
     <string name="error_invalid_username">This username is too short</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email
