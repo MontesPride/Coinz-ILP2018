@@ -21,7 +21,6 @@ import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.TextView
 
-import java.util.ArrayList
 import android.Manifest.permission.READ_CONTACTS
 import android.content.Intent
 import android.util.Log
@@ -29,11 +28,13 @@ import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
 
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import org.w3c.dom.Text
+import java.util.*
 
 /**
  * A login screen that offers login via email/password.
@@ -178,6 +179,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
                             when (it.exception?.message) {
                                 getString(R.string.error_firebase_no_network_connection) -> Toast.makeText(this, getString(R.string.error_no_network_connection), Toast.LENGTH_LONG).show()
+                                "Failed to create user: A network error (such as timeout, interrupted connection or unreachable host) has occurred." -> Toast.makeText(this, getString(R.string.error_no_network_connection), Toast.LENGTH_LONG).show()
                                 else -> Toast.makeText(this, getString(R.string.error_something_else_wrong), Toast.LENGTH_LONG).show()
                             }
                             return@addOnCompleteListener
@@ -196,6 +198,23 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                                             Log.d(tag, "User profile updated.")
                                         }
                                     }
+
+                            val userData = HashMap<String, Any>()
+                            userData.put("QUID", 0)
+                            userData.put("PENY", 0)
+                            userData.put("DOLR", 0)
+                            userData.put("SHIL", 0)
+                            userData.put("GOLD", 0)
+                            userData.put("COLLECTED", Arrays.asList(""))
+                            FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.uid!!)
+                                    .set(userData)
+                                    .addOnSuccessListener {
+                                        Log.d(tag, "[addData] Successfully added data to Firestore")
+                                    }
+                                    .addOnFailureListener {
+                                        Log.d(tag, "[addData] ${it.message.toString()}")
+                                    }
+
                             startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
                         }
                     }
