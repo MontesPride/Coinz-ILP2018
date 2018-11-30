@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".BankActivity"
+    android:background="#d3e4ff">
+
+    <TableRow
+        android:id="@+id/bank_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="4">
+
+        <Button
+            android:id="@+id/bank_exchangeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:enabled="false"
+            android:text="@string/Exchange"
+            android:layout_weight="2"
+            android:background="@drawable/button_selector"/>
+
+        <Button
+            android:id="@+id/bank_transferButton"
+            android:layout_width="wrap_content"
+            android:enabled="true"
+            android:layout_toRightOf="@+id/bank_exchangeButton"
+            android:layout_margin="5dp"
+            android:text="@string/Transfer"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:background="@drawable/button_selector"/>
+
+    </TableRow>
+
+
+    <!--
+     <TextView
+         android:id="@+id/bank_bankTextView"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_below="@id/bank_buttons"
+         android:text="@string/Bank"
+         android:textAlignment="center"
+         android:textSize="40sp"/> -->
+
+     <TableLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_below="@id/bank_buttons"
+         android:id="@+id/bank_goldTable" >
+
+         <TableRow
+             android:id="@+id/bank_goldRow"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:weightSum="2">
+
+             <TextView
+                 android:layout_weight="1"
+                 android:gravity="end"
+                 android:padding="3dip"
+                 android:textStyle="bold"
+                 android:textSize="20sp"
+                 android:text="@string/GOLD" />
+
+             <TextView
+                 android:id="@+id/bank_GOLDvalue"
+                 android:layout_weight="1"
+                 android:textSize="20sp"
+                 android:padding="3dip"
+                 android:text="@string/Placeholder_zero" />
+
+         </TableRow>
+
+     </TableLayout>
+
+    <View
+        android:id="@+id/bank_lineUnderGold"
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:layout_below="@+id/bank_goldTable"
+        android:background="#c0c0c0"
+        android:layout_marginLeft="100dp"
+        android:layout_marginRight="100dp" />
+
+     <TextView
+         android:id="@+id/bank_exchangeRatesTextView"
+         android:layout_width="match_parent"
+         android:textStyle="bold"
+         android:layout_height="wrap_content"
+         android:layout_below="@+id/bank_lineUnderGold"
+         android:text="@string/exchangeRates"
+         android:layout_marginBottom="6dp"
+         android:textAlignment="center"
+         android:textSize="25sp"/>
+
+     <TableLayout
+         android:id="@+id/bank_exchangeRates"
+         android:layout_width="match_parent"
+         android:layout_marginLeft="30dp"
+         android:layout_marginRight="30dp"
+         android:layout_height="wrap_content"
+         android:layout_below="@+id/bank_exchangeRatesTextView"
+         android:layout_marginBottom="8dp"
+         android:layout_alignParentEnd="true" >
+
+         <TableRow
+             android:id="@+id/exchangeRatesRow1"
+             android:layout_width="match_parent"
+             android:weightSum="2">
+
+             <TextView
+                 android:layout_weight="1"
+                 android:padding="2dp"
+                 android:gravity="end"
+                 android:layout_marginRight="10dp"
+                 android:textSize="17sp"
+                 android:text="@string/QUID" />
+
+             <TextView
+                 android:id="@+id/bank_QUIDvalue"
+                 android:layout_weight="1"
+                 android:padding="3dp"
+                 android:layout_marginLeft="10dp"
+                 android:textSize="17sp"
+                 android:text="@string/Placeholder_zero" />
+
+         </TableRow>
+
+         <TableRow
+             android:id="@+id/exchangeRatesRow2"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:weightSum="2">
+
+             <TextView
+                 android:layout_weight="1"
+                 android:padding="3dip"
+                 android:layout_marginRight="10dp"
+                 android:gravity="end"
+                 android:textSize="17sp"
+                 android:text="@string/PENY" />
+
+             <TextView
+                 android:id="@+id/bank_PENYvalue"
+                 android:layout_weight="1"
+                 android:padding="3dip"
+                 android:layout_marginLeft="10dp"
+                 android:textSize="17sp"
+                 android:text="@string/Placeholder_zero" />
+
+         </TableRow>
+
+         <TableRow
+             android:id="@+id/exchangeRatesRow3"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:weightSum="2">
+
+             <TextView
+                 android:layout_weight="1"
+                 android:padding="3dip"
+                 android:layout_marginRight="10dp"
+                 android:gravity="end"
+                 android:textSize="17sp"
+                 android:text="@string/DOLR" />
+
+             <TextView
+                 android:id="@+id/bank_DOLRvalue"
+                 android:layout_weight="1"
+                 android:padding="3dip"
+                 android:layout_marginLeft="10dp"
+                 android:textSize="17sp"
+                 android:text="@string/Placeholder_zero" />
+
+         </TableRow>
+
+         <TableRow
+             android:id="@+id/exchangeRatesRow4"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:weightSum="2">
+
+             <TextView
+                 android:layout_weight="1"
+                 android:padding="3dip"
+                 android:layout_marginRight="10dp"
+                 android:gravity="end"
+                 android:textSize="17sp"
+                 android:text="@string/SHIL" />
+
+             <TextView
+                 android:id="@+id/bank_SHILvalue"
+                 android:layout_weight="1"
+                 android:padding="3dip"
+                 android:layout_marginLeft="10dp"
+                 android:textSize="17sp"
+                 android:text="@string/Placeholder_zero" />
+
+         </TableRow>
+
+     </TableLayout>
+
+     <!--<TextView
+         android:id="@+id/bank_exchangedTextView"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:gravity="center_horizontal"
+         android:text="@string/ExchangesLeftPlaceholder"
+         android:layout_marginBottom="15dp"
+         android:layout_below="@+id/bank_exchangeRates"/>-->
+
+    <ViewSwitcher
+        android:layout_width="match_parent"
+        android:id="@+id/bank_viewSwitcher"
+        android:layout_below="@+id/bank_exchangeRates"
+        android:layout_height="50dp">
+
+        <TextView
+            android:id="@+id/bank_exchangedTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="20sp"
+            android:text="@string/ExchangesLeftPlaceholder"/>
+
+        <EditText
+            android:id="@+id/bank_transferEmail"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="@string/prompt_email"
+            android:gravity="center_vertical"
+            android:paddingLeft="15dp"
+            android:background="@drawable/rounded_edittext"
+            />
+
+    </ViewSwitcher>
+
+    <View
+        android:id="@+id/bank_lineUnderViewSwitcher"
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:layout_below="@+id/bank_viewSwitcher"
+        android:background="#c0c0c0"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp" />
+
+     <TextView
+         android:id="@+id/bank_noCoinzCollected"
+         android:layout_width="match_parent"
+         android:layout_marginTop="10dp"
+         android:textSize="35sp"
+         android:layout_height="wrap_content"
+         android:gravity="center_horizontal"
+         android:layout_below="@id/bank_lineUnderViewSwitcher"/>
+
+
+
+     <GridView
+         android:id="@+id/bank_coinzGridView"
+         android:horizontalSpacing="10dp"
+         android:verticalSpacing="20dp"
+         android:layout_marginTop="10dp"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_below="@+id/bank_lineUnderViewSwitcher"
+         android:numColumns="3"></GridView>
+
+ </RelativeLayout>

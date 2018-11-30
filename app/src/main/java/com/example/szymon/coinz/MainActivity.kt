@@ -9,6 +9,9 @@ import android.os.AsyncTask
 import android.os.Build.ID
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.os.VibrationEffect
+import android.os.Build
+import android.os.Vibrator
 import android.support.constraint.ConstraintLayout
 import android.support.design.widget.Snackbar
 import android.support.v4.graphics.drawable.DrawableCompat
@@ -18,6 +21,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.ListAdapter
 import android.widget.Toast
+import com.google.firebase.Timestamp
+import com.google.firebase.Timestamp.now
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.mapbox.android.core.location.LocationEngine
@@ -103,13 +108,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private var DOLR: Double? = null
     private var SHIL: Double? = null
     private var GOLD: Double? = null
-    private var CollectedCoinz: List<HashMap<String, Any>> = listOf()
-    private var CollectedID: List<String> = listOf()
+    private var CollectedCoinz: MutableList<HashMap<String, Any>> = arrayListOf()
+    private var CollectedID: MutableList<String> = arrayListOf()
+    private var LastDate: String = ""
+    private var LastTimestamp: Long = 0
+    private var CoinzExchanged: Int = 0
+    private var invalidDateAndTimeSnackbar: Snackbar? = null
+    private var dayToSeconds = 24*60*60
+    private var vibratorService: Vibrator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar)
+        //setSupportActionBar(toolbar)
 
 
 
@@ -132,7 +143,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
         signOut.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
-            Snackbar.make(it, "Signed out, uid: ${FirebaseAuth.getInstance().currentUser?.uid}", Snackbar.LENGTH_LONG).show()
+            finish()
+            //Snackbar.make(it, "Signed out, uid: ${FirebaseAuth.getInstance().currentUser?.uid}", Snackbar.LENGTH_LONG).show()
         }//top left
 
         displayMarkersButton.setOnClickListener {
@@ -140,7 +152,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         } // top middle
 
         showCoinz.setOnClickListener {
-            Snackbar.make(it, "Q:$QUID, P:$PENY, S:$SHIL, D:$DOLR, G:$GOLD", Snackbar.LENGTH_LONG).show()
+            Snackbar.make(it, "G:$GOLD", Snackbar.LENGTH_LONG).show()
             Log.d(tag, "[showCoinz] Size of CollectedID: ${CollectedID.size}")
             for (ID in CollectedID) {
                 Log.d(tag, "[showCoinz] $ID")
@@ -164,14 +176,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     .addOnFailureListener {
                         Log.d(tag, "[addData] ${it.message.toString()}")
                     }*/
-            setCoinzData(QUID!!, PENY!!, DOLR!!, SHIL!!, GOLD!!, CollectedID, CollectedCoinz)
+            setCoinzData()
         }//top right
 
-        addGOLD.setOnClickListener {
+        /*addGOLD.setOnClickListener {
             GOLD = GOLD?.plus(1)
+        } //center left*/
+
+        addGOLD.setOnClickListener {
+            startActivity(Intent(this, BankActivity::class.java))
         } //center left
 
+        vibratorService = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
         //getCoinzData()
+
+        invalidDateAndTimeSnackbar = Snackbar.make(mapboxMapView, getString(R.string.error_invalid_date_and_time), Snackbar.LENGTH_INDEFINITE)
 
         Mapbox.getInstance(applicationContext, getString(R.string.access_token))
         mapView = findViewById(R.id.mapboxMapView)
@@ -249,6 +269,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Log.d(tag, "[enableLocation] Permissions are granted")
             initaliseLocationEngine()
             initialiseLocationLayer()
+            permissionsManager = PermissionsManager(this)
             locationEnabled = true
         } else {
             Log.d(tag, "[enableLocation] Permissions are not granted")
@@ -260,6 +281,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private fun displayMarkers() {
         val featureList = FeatureCollection.fromJson(coinzMapData).features()
         for (feature in featureList!!) {
+            if (feature.properties()!!["id"].asString in CollectedID) continue
             val featureGeometry = feature.geometry().takeIf { it?.type() == "Point" } as Point
             val featureProperties = feature.properties()
             val coordinatesAsList = featureGeometry.coordinates()
@@ -286,30 +308,48 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     }
 
     private fun getCoinzData() {
-        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.uid!!)
+        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                 .get()
                 .addOnSuccessListener {
                     Log.d(tag, "[getData] Successfully retrieved data from Firestore")
                     //Log.d(tag, it.toString())
 
-                    QUID = it.get("QUID").toString().toDouble()
+                    /*QUID = it.get("QUID").toString().toDouble()
                     PENY = it.get("PENY").toString().toDouble()
                     DOLR = it.get("DOLR").toString().toDouble()
-                    SHIL = it.get("SHIL").toString().toDouble()
+                    SHIL = it.get("SHIL").toString().toDouble()*/
+                    Log.d(tag, "uid: ${FirebaseAuth.getInstance().currentUser?.email}")
                     GOLD = it.get("GOLD").toString().toDouble()
-                    CollectedID = it.get("CollectedID") as List<String>
-                    CollectedCoinz = it.get("CollectedCoinz") as List<HashMap<String, Any>>
+                    CollectedCoinz = it.get("CollectedCoinz") as MutableList<HashMap<String, Any>>
+                    LastDate = it.get("LastDate") as String
+                    LastTimestamp = it.get("LastTimestamp") as Long
+                    Log.d(tag, "[getCoinzData] ${Timestamp.now().seconds}, $LastTimestamp")
+                    if (LastDate != currentDate && Timestamp.now().seconds < LastTimestamp) {
+                        CollectedID  = arrayListOf()
+                    } else {
+                        CollectedID = it.get("CollectedID") as MutableList<String>
+                    }
+
+                    if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
+                        CoinzExchanged = 0
+                    } else {
+                        CoinzExchanged = it.get("CoinzExchanged").toString().toInt()
+                    }
+
                     CoinzDataDowloaded = true
 
-                    Log.d(tag, "[getCoinzData] Size of CollectedID: ${CollectedID.size}")
+                    Log.d(tag, "[getCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
                     for (ID in CollectedID) {
                         Log.d(tag, "[getCoinzData] $ID")
                     }
 
-                    if (!markersDisplyed && mapReady) {
+                    if (!markersDisplyed && mapReady && Timestamp.now().seconds >= LastTimestamp) {
                         Log.d(tag, "[getCoinzData] Displaying markers")
                         markersDisplyed = true
                         displayMarkers()
+                    }
+                    if (Timestamp.now().seconds < LastTimestamp) {
+                        invalidDateAndTimeSnackbar?.show()
                     }
                 }
                 .addOnFailureListener {
@@ -317,26 +357,44 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                 }
     }
 
-    private fun setCoinzData(Quid: Double, Peny: Double, Dolr: Double, Shil: Double, Gold: Double, CollectedID: List<String>, CollectedCoinz: List<HashMap<String, Any>>) {
+    private fun setCoinzData() {
         val userData = HashMap<String, Any>()
-        userData.put("QUID", 1)
+        /*userData.put("QUID", 1)
         userData.put("PENY", 1)
         userData.put("DOLR", 1)
-        userData.put("SHIL", 1)
-        userData.put("GOLD", Gold)
+        userData.put("SHIL", 1)*/
+        userData.put("GOLD", GOLD!!)
         //userData.put("CollectedID", Arrays.asList(""))
         userData.put("CollectedID", CollectedID)
         //userData.put("CollectedCoinz", listOf(""))
         userData.put("CollectedCoinz", CollectedCoinz)
+        userData.put("LastDate", currentDate)
+        userData.put("LastTimestamp", Timestamp.now().seconds)
+        userData.put("CoinzExchanged", CoinzExchanged)
         Log.d(tag, "[setCoinzData]$QUID,$PENY,$DOLR,$SHIL,$GOLD")
-        Log.d(tag, "[setCoinzData] Size of CollectedID: ${CollectedID.size}")
+        Log.d(tag, "[setCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
         for (ID in CollectedID) {
             Log.d(tag, "[setCoinzData] $ID")
         }
-        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.uid!!)
+        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                 .set(userData)
                 .addOnSuccessListener {
                     Log.d(tag, "[setCoinzData] Successfully added to Firestore")
+                    if (vibratorService!!.hasVibrator()) { // Vibrator availability checking
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                            // void vibrate (VibrationEffect vibe)
+                            vibratorService?.vibrate(
+                                    VibrationEffect.createOneShot(
+                                            100,
+                                            // The default vibration strength of the device.
+                                            VibrationEffect.DEFAULT_AMPLITUDE
+                                    )
+                            )
+                        }else{
+                            // This method was deprecated in API level 26
+                            vibratorService?.vibrate(100)
+                        }
+                    }
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[setCoinzData] ${it.message.toString()}")
@@ -347,15 +405,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         val radius = 6371
         val difLat = Lat2 - Lat1
         val difLong = Long2 - Long1
-        val result = 1000*2*radius*Math.asin(Math.sqrt( ((1 - Math.cos(difLat)) / 2)  + Math.cos(Lat1)*Math.cos(Lat2)*((1 - Math.cos(difLong)) / 2)  ))
+        val result = 1000*2*radius*Math.asin(Math.sqrt(((1 - Math.cos(difLat))/2) + Math.cos(Lat1)*Math.cos(Lat2)*((1 - Math.cos(difLong))/2)))
         return result
     }
 
     private fun checkCoinz() {
         if (this::originLocation.isInitialized && markersDisplyed) {
-            Log.d(tag, "[checkCoinz] Checking if there are coinz within 25 meters")
+            Log.d(tag, "[checkCoinz] Checking if there are coinz within 15 meters")
             val featureList = FeatureCollection.fromJson(coinzMapData).features()
             for (feature in featureList!!) {
+                if (feature.properties()!!["id"].asString in CollectedID) continue
                 val featureGeometry = feature.geometry() as Point
                 val coordinatesAsList = featureGeometry.coordinates()
                 val coinzLatitude = Math.toRadians(coordinatesAsList[1])
@@ -363,7 +422,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                 val originLatitude = Math.toRadians(originLocation.latitude)
                 val originLongitude = Math.toRadians(originLocation.longitude)
                 val distance = distanceBetweenCoordinates(coinzLatitude, coinzLongitude, originLatitude, originLongitude)
-                if (distance <= 10) {
+                if (distance <= 15) {
                     Log.d(tag, "[checkCoinz] dist(in meters): $distance, coinzLatLong: $coinzLatitude|$coinzLongitude, originLatLong: $originLatitude|$originLongitude")
                     if (feature.properties()!!["id"].asString !in CollectedID) {
                         Log.d(tag, "[checkCoinz] Feature not in collected")
@@ -371,9 +430,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                         val Coin = HashMap<String, Any>()
                         Coin.put("Currency", feature.properties()!!["currency"].asString)
                         Coin.put("Value", feature.properties()!!["value"].asDouble)
-                        CollectedCoinz += Coin
+                        //Coin.put("ID", feature.properties()!!["id"].asString)
+                        CollectedCoinz.add(Coin)
                         Log.d(tag, "[checkCoinz] Added Coin to collectedCoinz")
-                        CollectedID += feature.properties()!!["id"].asString
+                        CollectedID.add(feature.properties()!!["id"].asString)
                         Log.d(tag, "[checkCoinz] Added CoinID to collectedID")
                         Log.d(tag, "[checkCoinz] Size of CollectedID: ${CollectedID.size}")
                         for (ID in CollectedID) {
@@ -381,7 +441,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                         }
                         //Log.d(tag, "[checkCoinz] featureID: ${feature.properties()!!["id"]}")
                         //Log.d(tag, "[checkCoinz]$QUID,$PENY,$DOLR,$SHIL,$GOLD,${CollectedID}")
-                        //setCoinzData(QUID!!, PENY!!, DOLR!!, SHIL!!, GOLD!!, CollectedID)
+                        setCoinzData()
                         //Log.d(tag, "[checkCoinz] Sent data to Firestore")
                         for (marker in markers) {
                             //Log.d(tag, "[checkCoinz] I am in for loop")
@@ -399,7 +459,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             }*/
 
         } else {
-            Log.d(tag, "[checkCoinz] originLocation not initialized")
+            Log.d(tag, "[checkCoinz] originLocation not initialized or markers not displayed")
         }
     }
 
@@ -520,7 +580,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             fromStop = false
             permissionsManager.requestLocationPermissions(this)
         }
-
         if(PermissionsManager.areLocationPermissionsGranted(this)){
             Log.d(tag, "[onResume] Permissions are granted")
             if (!locationEnabled) {
@@ -542,6 +601,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                 }
             }
         }
+
+        if (now().seconds >= LastTimestamp && invalidDateAndTimeSnackbar!!.isShown) {
+            invalidDateAndTimeSnackbar?.dismiss()
+        }
+
         if (FirebaseAuth.getInstance().currentUser?.uid == null) {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
@@ -621,7 +685,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     inner class DownloadFileTask(private val caller : DownloadCompleteListener):
             AsyncTask<String, Void, String>() {
         override fun doInBackground(vararg urls: String): String = try {
-            Log.d("MainActivity", "[DownloadFileTask] Trying to download file")
+            Log.d(tag, "[DownloadFileTask] Trying to download file")
             loadFileFromNetwork(urls[0])
         } catch (e: IOException) {
             downloadError = true

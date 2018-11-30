@@ -25,6 +25,7 @@ import android.Manifest.permission.READ_CONTACTS
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -34,7 +35,10 @@ import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import org.w3c.dom.Text
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.collections.HashMap
 
 /**
  * A login screen that offers login via email/password.
@@ -125,12 +129,13 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
         // Reset errors.
         signup_email.error = null
-        signup_email.error = null
+        signup_password.error = null
+        signup_username.error = null
 
         // Store values at the time of the login attempt.
         val emailStr = signup_email.text.toString()
         val passwordStr = signup_password.text.toString()
-        val usernameStr = username.text.toString()
+        val usernameStr = signup_username.text.toString()
 
         var cancel = false
         var focusView: View? = null
@@ -156,8 +161,8 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
         // Check for a valid username
         if (TextUtils.isEmpty(usernameStr)) {
-            username.error = getString(R.string.error_invalid_username)
-            focusView = username
+            signup_username.error = getString(R.string.error_invalid_username)
+            focusView = signup_username
             cancel = true
         }
 
@@ -171,7 +176,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             showProgress(true)
             //mAuthTask = UserLoginTask(emailStr, passwordStr)
             //mAuthTask!!.execute(null as Void?)
-
+            Log.d(tag, "[attemptLogin] email: $emailStr")
             mAuth?.createUserWithEmailAndPassword(emailStr, passwordStr)
                     ?.addOnCompleteListener {
                         showProgress(false)
@@ -188,6 +193,26 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
                             val user = FirebaseAuth.getInstance().currentUser
 
+                            val userData = HashMap<String, Any>()
+                                    /*userData.put("QUID", 0)
+                            userData.put("PENY", 0)
+                            userData.put("DOLR", 0)
+                            userData.put("SHIL", 0)*/
+                            userData.put("GOLD", 0)
+                            userData.put("CollectedCoinz", listOf<HashMap<String, Any>>())
+                            userData.put("CollectedID", listOf<String>())
+                            userData.put("LastDate", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
+                            userData.put("LastTimestamp", Timestamp.now().seconds)
+                            userData.put("CoinzExchanged", 0)
+                            FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+                                    .set(userData)
+                                    .addOnSuccessListener {
+                                        Log.d(tag, "[addData] Successfully added data to Firestore")
+                                    }
+                                    .addOnFailureListener {
+                                        Log.d(tag, "[addData] ${it.message.toString()}")
+                                    }
+
                             val profileUpdates = UserProfileChangeRequest.Builder()
                                     .setDisplayName(usernameStr)
                                     .build()
@@ -197,22 +222,6 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                                         if (task.isSuccessful) {
                                             Log.d(tag, "User profile updated.")
                                         }
-                                    }
-
-                            val userData = HashMap<String, Any>()
-                            userData.put("QUID", 0)
-                            userData.put("PENY", 0)
-                            userData.put("DOLR", 0)
-                            userData.put("SHIL", 0)
-                            userData.put("GOLD", 0)
-                            userData.put("COLLECTED", Arrays.asList(""))
-                            FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.uid!!)
-                                    .set(userData)
-                                    .addOnSuccessListener {
-                                        Log.d(tag, "[addData] Successfully added data to Firestore")
-                                    }
-                                    .addOnFailureListener {
-                                        Log.d(tag, "[addData] ${it.message.toString()}")
                                     }
 
                             startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
