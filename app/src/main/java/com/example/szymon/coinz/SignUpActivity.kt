@@ -204,6 +204,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                             userData.put("LastDate", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
                             userData.put("LastTimestamp", Timestamp.now().seconds)
                             userData.put("CoinzExchanged", 0)
+                            userData.put("Username", usernameStr)
                             FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                                     .set(userData)
                                     .addOnSuccessListener {

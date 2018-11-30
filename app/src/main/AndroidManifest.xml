@@ -41,7 +41,8 @@
         <activity
             android:name=".BankActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".RankingActivity"></activity>
+        <activity android:name=".RankingActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

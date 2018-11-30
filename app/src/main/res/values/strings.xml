@@ -17,6 +17,7 @@
     <string name="NoExchangesLeft">Come back tomorrow to exchange more Coinz</string>
     <string name="SomeExchangesLeft">You need to exchange 25 Coinz first</string>
     <string name="TransferSameEmail">You cannot transfer Coinz to yourself</string>
+    <string name="PlayerRanking">Player Ranking</string>
     <string name="access_token">pk.eyJ1IjoibTBudGVzIiwiYSI6ImNqbnZwejhqMDAwbDYzdm11Mm1td3lncDAifQ.1hbLQjREfwCIqq289JfPig</string>
     <string name="title_activity_login">Sign in</string>
     <!-- Strings related to login -->

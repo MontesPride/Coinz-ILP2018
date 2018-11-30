@@ -25,6 +25,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.Timestamp.now
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.auth.User
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
 import com.mapbox.android.core.location.LocationEnginePriority
@@ -108,6 +109,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private var DOLR: Double? = null
     private var SHIL: Double? = null
     private var GOLD: Double? = null
+    private var Username: String? = null
     private var CollectedCoinz: MutableList<HashMap<String, Any>> = arrayListOf()
     private var CollectedID: MutableList<String> = arrayListOf()
     private var LastDate: String = ""
@@ -133,8 +135,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Snackbar.make(view, "${FirebaseAuth.getInstance().currentUser?.displayName}", Snackbar.LENGTH_LONG).show()
         }//bottom middle
 
-        goToLogin.setOnClickListener {
+        /*goToLogin.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
+        }//bottom left*/
+
+        goToLogin.setOnClickListener {
+            startActivity(Intent(this, RankingActivity::class.java))
         }//bottom left
 
         goToSignUp.setOnClickListener {
@@ -323,6 +329,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     CollectedCoinz = it.get("CollectedCoinz") as MutableList<HashMap<String, Any>>
                     LastDate = it.get("LastDate") as String
                     LastTimestamp = it.get("LastTimestamp") as Long
+                    Username = it.get("Username") as String
                     Log.d(tag, "[getCoinzData] ${Timestamp.now().seconds}, $LastTimestamp")
                     if (LastDate != currentDate && Timestamp.now().seconds < LastTimestamp) {
                         CollectedID  = arrayListOf()
@@ -371,6 +378,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         userData.put("LastDate", currentDate)
         userData.put("LastTimestamp", Timestamp.now().seconds)
         userData.put("CoinzExchanged", CoinzExchanged)
+        userData.put("Username", Username!!)
         Log.d(tag, "[setCoinzData]$QUID,$PENY,$DOLR,$SHIL,$GOLD")
         Log.d(tag, "[setCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
         for (ID in CollectedID) {

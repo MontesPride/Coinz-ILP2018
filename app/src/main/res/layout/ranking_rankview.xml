@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/ranking_username"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:layout_width="wrap_content"
+                android:gravity="center"
+                android:text="Sample username"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="3dp"/>
+
+            <View
+                android:id="@+id/ranking_verticalLine"
+                android:layout_width="2dp"
+                android:layout_height="30dp"
+                android:background="#c0c0c0"
+                android:layout_centerHorizontal="true"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                />
+
+            <TextView
+                android:id="@+id/ranking_gold"
+                android:text="Sample gold"
+                android:textSize="18sp"
+                android:layout_marginRight="15dp"
+                android:layout_marginLeft="3dp"
+                android:gravity="center"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_toRightOf="@+id/ranking_verticalLine"
+                android:layout_marginBottom="5dp"/>
+
+
+</RelativeLayout>
