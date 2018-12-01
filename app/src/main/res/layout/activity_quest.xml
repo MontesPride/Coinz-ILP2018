@@ -4,42 +4,42 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".RankingActivity">
+    tools:context=".QuestActivity">
 
     <TextView
-        android:id="@+id/ranking_PlayerRanking"
+        android:id="@+id/quest_DailyQuests"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/PlayerRanking"
+        android:text="@string/DailyQuests"
         android:textStyle="bold"
         android:textSize="30sp"
         android:gravity="center"/>
 
     <View
-        android:id="@+id/ranking_horizontalTopLine"
+        android:id="@+id/quest_horizontalTopLine"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="#c0c0c0"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/ranking_PlayerRanking"
+        android:layout_below="@+id/quest_DailyQuests"
         />
 
     <ListView
-        android:id="@+id/ranking_listView"
+        android:id="@+id/quest_listView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:horizontalSpacing="10dp"
         android:verticalSpacing="20dp"
-        android:layout_below="@+id/ranking_horizontalTopLine" />
+        android:layout_below="@+id/quest_horizontalTopLine" />
 
     <View
-        android:id="@+id/ranking_horizontalBottomLine"
+        android:id="@+id/quest_horizontalBottomLine"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="#c0c0c0"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/ranking_listView"
+        android:layout_below="@+id/quest_listView"
         />
 
 </RelativeLayout>

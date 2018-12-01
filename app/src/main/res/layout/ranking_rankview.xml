@@ -6,17 +6,18 @@
             <TextView
                 android:id="@+id/ranking_username"
                 android:layout_height="wrap_content"
-                android:textSize="18sp"
+                android:textSize="21sp"
                 android:layout_width="wrap_content"
-                android:gravity="center"
-                android:text="Sample username"
-                android:layout_marginLeft="15dp"
-                android:layout_marginRight="3dp"/>
+                android:gravity="center_vertical"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="3dp"
+                android:singleLine="true"
+                android:maxLines="1"/>
 
             <View
                 android:id="@+id/ranking_verticalLine"
                 android:layout_width="2dp"
-                android:layout_height="30dp"
+                android:layout_height="33dp"
                 android:background="#c0c0c0"
                 android:layout_centerHorizontal="true"
                 android:layout_marginLeft="15dp"
@@ -25,14 +26,15 @@
 
             <TextView
                 android:id="@+id/ranking_gold"
-                android:text="Sample gold"
-                android:textSize="18sp"
-                android:layout_marginRight="15dp"
-                android:layout_marginLeft="3dp"
-                android:gravity="center"
+                android:textSize="21sp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginStart="3dp"
+                android:gravity="center_vertical"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:layout_toRightOf="@+id/ranking_verticalLine"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:layout_toEndOf="@+id/ranking_verticalLine"
                 android:layout_marginBottom="5dp"/>
 
 

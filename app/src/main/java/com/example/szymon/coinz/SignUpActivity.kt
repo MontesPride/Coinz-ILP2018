@@ -25,19 +25,18 @@ import android.Manifest.permission.READ_CONTACTS
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 
-import kotlinx.android.synthetic.main.activity_login.*
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_sign_up.*
-import org.w3c.dom.Text
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import java.util.regex.Pattern
 import kotlin.collections.HashMap
 
 /**
@@ -54,9 +53,17 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
     private var mAuth: FirebaseAuth? = null
 
+    private var gso: GoogleSignInOptions? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
+
+        /*gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()*/
+
         // Set up the login form.
         populateAutoComplete()
         signup_password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
@@ -97,7 +104,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
             Snackbar.make(signup_email, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
                     .setAction(android.R.string.ok,
-                            { requestPermissions(arrayOf(READ_CONTACTS), REQUEST_READ_CONTACTS) })
+                            {requestPermissions(arrayOf(READ_CONTACTS), REQUEST_READ_CONTACTS)})
         } else {
             requestPermissions(arrayOf(READ_CONTACTS), REQUEST_READ_CONTACTS)
         }
@@ -139,7 +146,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
         var cancel = false
         var focusView: View? = null
-        var success = false
+        //var success = false
 
         // Check for a valid password, if the user entered one.
         if (TextUtils.isEmpty(passwordStr) || !isPasswordValid(passwordStr)) {
@@ -205,6 +212,18 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                             userData.put("LastTimestamp", Timestamp.now().seconds)
                             userData.put("CoinzExchanged", 0)
                             userData.put("Username", usernameStr)
+                            userData.put("Rerolled", false)
+
+                            val Amount = (3..6).shuffled().first()
+                            val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
+                            val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
+                            val Quests = HashMap<String, Any>()
+                            Quests.put("Amount", Amount)
+                            Quests.put("Currency", Currency)
+                            Quests.put("Reward", Reward)
+                            Quests.put("CompletionStage", 0)
+                            userData.put("Quests", Quests)
+
                             FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                                     .set(userData)
                                     .addOnSuccessListener {
@@ -238,13 +257,19 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
 
     private fun isEmailValid(email: String): Boolean {
-        //TODO: Replace this with your own logic
-        return email.contains("@")
+        return Pattern.compile(
+                "^(([\\w-]+\\.)+[\\w-]+|([a-zA-Z]|[\\w-]{2,}))@"
+                        + "((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
+                        + "[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\."
+                        + "([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
+                        + "[0-9]{1,2}|25[0-5]|2[0-4][0-9]))|"
+                        + "([a-zA-Z]+[\\w-]+\\.)+[a-zA-Z]{2,4})$"
+        ).matcher(email).matches()
     }
 
     private fun isPasswordValid(password: String): Boolean {
         //TODO: Replace this with your own logic
-        return password.length > 4
+        return password.length > 6
     }
 
     /**
@@ -377,7 +402,6 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
     public override fun onStart() {
         super.onStart()
-        var currentUser: FirebaseUser? = mAuth?.currentUser
         if (FirebaseAuth.getInstance().currentUser?.uid != null) {
             startActivity(Intent(this, MainActivity::class.java))
         }

@@ -4,28 +4,20 @@ package com.example.szymon.coinz
 import android.content.Context
 import android.content.Intent
 import android.location.Location
-import android.media.CamcorderProfile
 import android.os.AsyncTask
-import android.os.Build.ID
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.os.VibrationEffect
 import android.os.Build
 import android.os.Vibrator
-import android.support.constraint.ConstraintLayout
 import android.support.design.widget.Snackbar
-import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.ListAdapter
-import android.widget.Toast
 import com.google.firebase.Timestamp
 import com.google.firebase.Timestamp.now
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.auth.User
 import com.mapbox.android.core.location.LocationEngine
 import com.mapbox.android.core.location.LocationEngineListener
 import com.mapbox.android.core.location.LocationEnginePriority
@@ -33,7 +25,6 @@ import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.api.directions.v5.models.DirectionsResponse
-import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
 
@@ -63,9 +54,6 @@ import java.net.URL
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -104,10 +92,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private lateinit var locationLayerPlugin : LocationLayerPlugin
     private var locationEnabled = false
 
-    private var QUID: Double? = null
-    private var PENY: Double? = null
-    private var DOLR: Double? = null
-    private var SHIL: Double? = null
     private var GOLD: Double? = null
     private var Username: String? = null
     private var CollectedCoinz: MutableList<HashMap<String, Any>> = arrayListOf()
@@ -115,8 +99,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private var LastDate: String = ""
     private var LastTimestamp: Long = 0
     private var CoinzExchanged: Int = 0
+    private var Quests: MutableList<HashMap<String, Any>> = arrayListOf()
+    private var Rerolled = false
+    private var CollectedQUID = 0
+    private var CollectedPENY = 0
+    private var CollectedDOLR = 0
+    private var CollectedSHIL = 0
     private var invalidDateAndTimeSnackbar: Snackbar? = null
-    private var dayToSeconds = 24*60*60
     private var vibratorService: Vibrator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,6 +122,33 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
         fab.setOnClickListener {view ->
             Snackbar.make(view, "${FirebaseAuth.getInstance().currentUser?.displayName}", Snackbar.LENGTH_LONG).show()
+
+            val Quest = HashMap<String, Any>()
+
+            Quest.put("Amount", 4)
+            Quest.put("Currency", "SHIL")
+            Quest.put("Reward", 150)
+            Quest.put("CompletionStage", 3)
+            Quests.add(Quest)
+
+            Quest.put("Amount", 4)
+            Quest.put("Currency", "SHIL")
+            Quest.put("Reward", 150)
+            Quest.put("CompletionStage", 3)
+            Quests.add(Quest)
+
+            Quest.put("Amount", 4)
+            Quest.put("Currency", "SHIL")
+            Quest.put("Reward", 150)
+            Quest.put("CompletionStage", 3)
+            Quests.add(Quest)
+
+            Quest.put("Amount", 4)
+            Quest.put("Currency", "SHIL")
+            Quest.put("Reward", 150)
+            Quest.put("CompletionStage", 3)
+            Quests.add(Quest)
+
         }//bottom middle
 
         /*goToLogin.setOnClickListener {
@@ -143,8 +159,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             startActivity(Intent(this, RankingActivity::class.java))
         }//bottom left
 
-        goToSignUp.setOnClickListener {
+        /*goToSignUp.setOnClickListener {
             startActivity(Intent(this, SignUpActivity::class.java))
+        }//bottom right*/
+
+        goToSignUp.setOnClickListener {
+            startActivity(Intent(this, QuestActivity::class.java))
         }//bottom right
 
         signOut.setOnClickListener {
@@ -250,7 +270,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     .build()
                     .getRoute(object: Callback<DirectionsResponse> {
                         override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>) {
-                            val routeResponse = response ?: return
+                            val routeResponse = response
                             val body = routeResponse.body() ?: return
                             if (body.routes().count() == 0) {
                                 Log.d(tag, "[getRoute] No routes found")
@@ -326,29 +346,80 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     SHIL = it.get("SHIL").toString().toDouble()*/
                     Log.d(tag, "uid: ${FirebaseAuth.getInstance().currentUser?.email}")
                     GOLD = it.get("GOLD").toString().toDouble()
+                    @Suppress("UNCHECKED_CAST")
                     CollectedCoinz = it.get("CollectedCoinz") as MutableList<HashMap<String, Any>>
                     LastDate = it.get("LastDate") as String
                     LastTimestamp = it.get("LastTimestamp") as Long
                     Username = it.get("Username") as String
+                    @Suppress("UNCHECKED_CAST")
+                    Quests = it.get("Quests") as MutableList<HashMap<String, Any>>
+                    Rerolled = it.get("Rerolled") as Boolean
+
                     Log.d(tag, "[getCoinzData] ${Timestamp.now().seconds}, $LastTimestamp")
-                    if (LastDate != currentDate && Timestamp.now().seconds < LastTimestamp) {
+                    if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
                         CollectedID  = arrayListOf()
+                        CoinzExchanged = 0
+
+                        for (i in (0..1)) {
+                            if (Quests.size <= 10) {
+                                val Amount = (3..6).shuffled().first()
+                                val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
+                                val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
+                                val Quest = HashMap<String, Any>()
+                                Quest.put("Amount", Amount)
+                                Quest.put("Currency", Currency)
+                                Quest.put("Reward", Reward)
+                                Quest.put("CompletionStage", 0)
+                                Quests.add(Quest)
+                            }
+                        }
+                        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+                                .update("Quests", Quests)
+                                .addOnSuccessListener {
+                                    Log.d(tag, "[getCoinzData] New quest added")
+                                }
+                                .addOnFailureListener {
+                                    Log.d(tag, "[getCoinzData] ${it.message.toString()}")
+                                }
                     } else {
+                        @Suppress("UNCHECKED_CAST")
                         CollectedID = it.get("CollectedID") as MutableList<String>
+                        CoinzExchanged = it.get("CoinzExchanged").toString().toInt()
                     }
 
-                    if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
+                    /*if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
                         CoinzExchanged = 0
                     } else {
                         CoinzExchanged = it.get("CoinzExchanged").toString().toInt()
                     }
 
+                    if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
+                        val Amount = (3..6).shuffled().first()
+                        val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
+                        val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
+                        val Quest = HashMap<String, Any>()
+                        Quest.put("Amount", Amount)
+                        Quest.put("Currency", Currency)
+                        Quest.put("Reward", Reward)
+                        Quests.add(Quest)
+
+                        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+                                .update("Quests", Quests)
+                                .addOnSuccessListener {
+                                    Log.d(tag, "[getCoinzData] New quest added")
+                                }
+                                .addOnFailureListener {
+                                    Log.d(tag, "[getCoinzData] ${it.message.toString()}")
+                                }
+
+                    }*/
+
                     CoinzDataDowloaded = true
 
                     Log.d(tag, "[getCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
-                    for (ID in CollectedID) {
+                    /*for (ID in CollectedID) {
                         Log.d(tag, "[getCoinzData] $ID")
-                    }
+                    }*/
 
                     if (!markersDisplyed && mapReady && Timestamp.now().seconds >= LastTimestamp) {
                         Log.d(tag, "[getCoinzData] Displaying markers")
@@ -379,11 +450,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         userData.put("LastTimestamp", Timestamp.now().seconds)
         userData.put("CoinzExchanged", CoinzExchanged)
         userData.put("Username", Username!!)
-        Log.d(tag, "[setCoinzData]$QUID,$PENY,$DOLR,$SHIL,$GOLD")
+        userData.put("Rerolled", Rerolled)
+        userData.put("Quests", Quests)
         Log.d(tag, "[setCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
-        for (ID in CollectedID) {
+        /*for (ID in CollectedID) {
             Log.d(tag, "[setCoinzData] $ID")
-        }
+        }*/
         FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                 .set(userData)
                 .addOnSuccessListener {
@@ -444,9 +516,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                         CollectedID.add(feature.properties()!!["id"].asString)
                         Log.d(tag, "[checkCoinz] Added CoinID to collectedID")
                         Log.d(tag, "[checkCoinz] Size of CollectedID: ${CollectedID.size}")
-                        for (ID in CollectedID) {
+                        /*for (ID in CollectedID) {
                             Log.d(tag, "[checkCoinz] $ID")
+                        }*/
+                        for (quest in Quests) {
+                            if (quest["Currency"].toString() == feature.properties()!!["currency"].asString) {
+
+                                quest["CompletionStage"] = quest["CompletionStage"].toString().toInt() + 1
+                                if (quest["CompletionStage"].toString().toInt() >= quest["Amount"].toString().toInt()) {
+                                    GOLD = GOLD!! + quest["Reward"].toString().toDouble()
+                                    Log.d(tag, "[checkCoinz] Quest completed ${Quests.indexOf(quest)}, $GOLD")
+                                }
+                            }
                         }
+                        Quests.removeIf{it["CompletionStage"].toString().toInt() >= it["Amount"].toString().toInt()}
+
+
                         //Log.d(tag, "[checkCoinz] featureID: ${feature.properties()!!["id"]}")
                         //Log.d(tag, "[checkCoinz]$QUID,$PENY,$DOLR,$SHIL,$GOLD,${CollectedID}")
                         setCoinzData()

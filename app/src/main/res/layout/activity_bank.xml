@@ -71,6 +71,8 @@
                  android:id="@+id/bank_GOLDvalue"
                  android:layout_weight="1"
                  android:textSize="20sp"
+                 android:singleLine="true"
+                 android:maxLines="1"
                  android:padding="3dip"
                  android:text="@string/Placeholder_zero" />
 
@@ -235,6 +237,8 @@
             android:hint="@string/prompt_email"
             android:gravity="center_vertical"
             android:paddingLeft="15dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
             android:background="@drawable/rounded_edittext"
             />
 
@@ -246,6 +250,7 @@
         android:layout_height="2dp"
         android:layout_below="@+id/bank_viewSwitcher"
         android:background="#c0c0c0"
+        android:layout_marginTop="3dp"
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp" />
 

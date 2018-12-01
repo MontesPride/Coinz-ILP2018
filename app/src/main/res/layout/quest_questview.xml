@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+        <TableRow
+            android:id="@+id/quest_TableRowQuest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="5"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/quest_quest"
+                android:layout_height="wrap_content"
+                android:textSize="21sp"
+                android:layout_weight="2"
+                android:layout_width="match_parent"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="15dp"
+                android:singleLine="true"
+                android:maxLines="1"/>
+
+
+            <TextView
+                android:id="@+id/quest_completionStage"
+                android:layout_width="match_parent"
+                android:textSize="21sp"
+                android:gravity="center_horizontal"
+                android:layout_height="match_parent"
+                android:layout_weight="3"
+                android:layout_marginStart="15dp" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/quest_TableRowReward"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="4"
+            android:layout_below="@+id/quest_TableRowQuest">
+
+            <TextView
+                android:id="@+id/quest_reward"
+                android:textSize="21sp"
+                android:layout_marginEnd="15dp"
+                android:layout_weight="3"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:layout_marginBottom="5dp"/>
+
+            <Button
+                android:id="@+id/quest_rerollButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="15dp"
+                android:text="@string/RerollQuest"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/rounded_button"/>
+
+        </TableRow>
+
+    <!--<TextView
+        android:id="@+id/quest_reward"
+        android:textSize="21sp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginStart="15dp"
+        android:gravity="center_vertical"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:layout_below="@id/quest_quest"
+        android:layout_marginBottom="5dp"/>-->
+
+    <!--<View
+        android:id="@+id/quest_horizontallLine"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#c0c0c0"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_below="@id/quest_reward"
+        />-->
+
+</RelativeLayout>

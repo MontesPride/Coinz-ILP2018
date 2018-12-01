@@ -22,8 +22,8 @@ class RankingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ranking)
         val userDataDescription = HashMap<String, Any>()
-        userDataDescription.put("Username", "Username")
-        userDataDescription.put("Gold", "GOLD")
+        userDataDescription["Username"] = "Username"
+        userDataDescription["Gold"] = "GOLD"
         userData.add(userDataDescription)
 
         //displayRanking()
@@ -34,14 +34,15 @@ class RankingActivity : AppCompatActivity() {
 
 
     private fun displayRanking() {
-        ranking_listView.adapter = rankingAdapter(this)
+        ranking_listView.adapter = RankingAdapter(this)
     }
 
-    inner class rankingAdapter(context: Context): BaseAdapter(){
+    inner class RankingAdapter(context: Context): BaseAdapter(){
 
         private val mContext = context
 
         override fun getCount(): Int = userData.size
+
         override fun getItem(position: Int): Any? = null
 
         override fun getItemId(position: Int): Long = 0L
@@ -52,12 +53,12 @@ class RankingActivity : AppCompatActivity() {
             val rankingView = layoutInflater.inflate(R.layout.ranking_rankview, parent, false)
 
             if (position != 0) {
-                rankingView.findViewById<TextView>(R.id.ranking_username).text = position.toString() + ". " + userData[position].get("Username").toString()
+                rankingView.findViewById<TextView>(R.id.ranking_username).text = "%s. %s".format(position.toString(), userData[position]["Username"].toString())
+                rankingView.findViewById<TextView>(R.id.ranking_gold).text = "%.1f".format(userData[position]["Gold"].toString().toDouble())
             } else {
-                rankingView.findViewById<TextView>(R.id.ranking_username).text = userData[position].get("Username").toString()
+                rankingView.findViewById<TextView>(R.id.ranking_username).text = userData[position]["Username"].toString()
+                rankingView.findViewById<TextView>(R.id.ranking_gold).text = userData[position]["Gold"].toString()
             }
-
-            rankingView.findViewById<TextView>(R.id.ranking_gold).text = userData[position].get("Gold").toString()
 
          return rankingView
 
@@ -72,15 +73,15 @@ class RankingActivity : AppCompatActivity() {
         FirebaseFirestore.getInstance().collection("Coinz")
                 .get()
                 .addOnSuccessListener {
-                    var userDataTempList: MutableList<HashMap<String, Any>> = arrayListOf()
+                    val userDataTempList: MutableList<HashMap<String, Any>> = arrayListOf()
                     for (document in it.documents) {
                         Log.d(tag, "[onStart] ${document.get("Username")}, ${document.get("GOLD")}")
-                        var userDataTemp = HashMap<String, Any>()
+                        val userDataTemp = HashMap<String, Any>()
                         userDataTemp.put("Username", document.get("Username")!!)
                         userDataTemp.put("Gold", document.get("GOLD")!!)
                         userDataTempList.add(userDataTemp)
                     }
-                    userDataTempList.sortByDescending({it.get("Gold").toString().toDouble()})
+                    userDataTempList.sortByDescending{it["Gold"].toString().toDouble()}
                     userData.addAll(userDataTempList)
                     displayRanking()
                 }

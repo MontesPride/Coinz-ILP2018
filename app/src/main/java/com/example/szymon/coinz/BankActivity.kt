@@ -7,12 +7,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.Window
 import android.widget.*
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.mapbox.geojson.FeatureCollection
 import kotlinx.android.synthetic.main.activity_bank.*
 import org.json.JSONObject
 import java.time.LocalDateTime
@@ -31,6 +29,7 @@ class BankActivity : AppCompatActivity() {
     private var LastDate: String = ""
     private var LastTimestamp: Long = 0
     private var currentDate = ""
+    private var Username = ""
     private var rates = JSONObject()
     private var exchangeCoinzPrefix = "You can exchange "
     private var exchangeCoinzSufix = " Coinz"
@@ -128,7 +127,7 @@ class BankActivity : AppCompatActivity() {
             val coinView = layoutInflater.inflate(R.layout.bank_coinview, parent, false)
 
             coinView.findViewById<TextView>(R.id.coinCurrency).text = coinzData[position]["Currency"].toString()
-            coinView.findViewById<TextView>(R.id.coinValue).text = "%.4f".format(coinzData[position]["Value"].toString().toDouble())
+            coinView.findViewById<TextView>(R.id.coinValue).text = "%.2f".format(coinzData[position]["Value"].toString().toDouble())
 
             if (CoinzExchanged >= 25) {
                 coinView.findViewById<Button>(R.id.coinExchange).isEnabled = false
@@ -190,7 +189,7 @@ class BankActivity : AppCompatActivity() {
             val coinView = layoutInflater.inflate(R.layout.bank_coinview, parent, false)
 
             coinView.findViewById<TextView>(R.id.coinCurrency).text = coinzData[position]["Currency"].toString()
-            coinView.findViewById<TextView>(R.id.coinValue).text = "%.4f".format(coinzData[position]["Value"].toString().toDouble())
+            coinView.findViewById<TextView>(R.id.coinValue).text = "%.2f".format(coinzData[position]["Value"].toString().toDouble())
             coinView.findViewById<Button>(R.id.coinExchange).text =getString(R.string.Transfer)
 
             if (CoinzExchanged < 25) {
@@ -229,11 +228,11 @@ class BankActivity : AppCompatActivity() {
         GOLD = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE).getFloat("GOLD", 0.0.toFloat()).toDouble()
         //Log.d(tag, coinzMapData)
         rates = JSONObject(coinzMapData).get("rates") as JSONObject
-        bank_QUIDvalue.text = "%.4f".format(rates.get("QUID"))
-        bank_PENYvalue.text = "%.4f".format(rates.get("PENY"))
-        bank_DOLRvalue.text = "%.4f".format(rates.get("DOLR"))
-        bank_SHILvalue.text = "%.4f".format(rates.get("SHIL"))
-        bank_GOLDvalue.text = "%.4f".format(GOLD)
+        bank_QUIDvalue.text = "%.3f".format(rates.get("QUID"))
+        bank_PENYvalue.text = "%.3f".format(rates.get("PENY"))
+        bank_DOLRvalue.text = "%.3f".format(rates.get("DOLR"))
+        bank_SHILvalue.text = "%.3f".format(rates.get("SHIL"))
+        bank_GOLDvalue.text = "%.1f".format(GOLD)
         //Log.d(tag, rates.get("SHIL").toString())
     }
 
@@ -243,13 +242,16 @@ class BankActivity : AppCompatActivity() {
                 .addOnSuccessListener {
 
                     GOLD = it.get("GOLD").toString().toDouble()
+                    @Suppress("UNCHECKED_CAST")
                     coinzData = it.get("CollectedCoinz") as MutableList<HashMap<String, Any>>
                     LastDate = it.get("LastDate") as String
                     LastTimestamp = it.get("LastTimestamp") as Long
+                    Username = it.get("Username") as String
                     Log.d(tag, "[getCoinzData] ${Timestamp.now().seconds}, $LastTimestamp")
                     if (LastDate != currentDate && Timestamp.now().seconds < LastTimestamp) {
                         CollectedID  = arrayListOf()
                     } else {
+                        @Suppress("UNCHECKED_CAST")
                         CollectedID = it.get("CollectedID") as MutableList<String>
                     }
 
@@ -266,7 +268,7 @@ class BankActivity : AppCompatActivity() {
                         Log.d(tag, "[getCoinzData] $ID")
                     }
 
-                    bank_GOLDvalue.text = "%.4f".format(GOLD)
+                    bank_GOLDvalue.text = "%.1f".format(GOLD)
                     if (CoinzExchanged < 25) {
                         bank_exchangedTextView.text = exchangeCoinzPrefix + (25 - CoinzExchanged).toString() + exchangeCoinzSufix
                     } else {
@@ -295,6 +297,7 @@ class BankActivity : AppCompatActivity() {
         userData.put("LastDate", currentDate)
         userData.put("LastTimestamp", Timestamp.now().seconds)
         userData.put("CoinzExchanged", CoinzExchanged)
+        userData.put("Username", Username)
         for (ID in CollectedID) {
             Log.d(tag, "[setCoinzData] $ID")
         }
@@ -308,7 +311,7 @@ class BankActivity : AppCompatActivity() {
                         displayTransferCoinz()
                     }
 
-                    bank_GOLDvalue.text = "%.4f".format(GOLD)
+                    bank_GOLDvalue.text = "%.1f".format(GOLD)
                     if (CoinzExchanged < 25) {
                         bank_exchangedTextView.text = exchangeCoinzPrefix + (25 - CoinzExchanged).toString() + exchangeCoinzSufix
                     } else {
@@ -345,6 +348,7 @@ class BankActivity : AppCompatActivity() {
                                             .addOnSuccessListener {
                                                 Log.d(tag, "[transferCoinz] Coin successfully transfered")
                                                 setCoinzData("transfer")
+                                                Toast.makeText(this, getString(R.string.SuccessfulTransfer), Toast.LENGTH_LONG).show()
                                             }
                                             .addOnFailureListener {
                                                 Log.d(tag, "[transferCoinz] ${it.message.toString()}")

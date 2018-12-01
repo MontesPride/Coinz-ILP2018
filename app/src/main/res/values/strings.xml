@@ -18,6 +18,9 @@
     <string name="SomeExchangesLeft">You need to exchange 25 Coinz first</string>
     <string name="TransferSameEmail">You cannot transfer Coinz to yourself</string>
     <string name="PlayerRanking">Player Ranking</string>
+    <string name="DailyQuests">Daily Quests</string>
+    <string name="RerollQuest">Reroll</string>
+    <string name="SuccessfulTransfer">Coin successfully transferred</string>
     <string name="access_token">pk.eyJ1IjoibTBudGVzIiwiYSI6ImNqbnZwejhqMDAwbDYzdm11Mm1td3lncDAifQ.1hbLQjREfwCIqq289JfPig</string>
     <string name="title_activity_login">Sign in</string>
     <!-- Strings related to login -->
@@ -26,6 +29,7 @@
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign in</string>
     <string name="action_sign_up">Register</string>
+    <string name="action_sign_up_google">Register with Google</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="action_already_registered">Already have an account</string>
     <string name="error_invalid_email">This email address is invalid</string>

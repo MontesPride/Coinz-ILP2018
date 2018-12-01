@@ -29,7 +29,7 @@ import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_login.*
 
-import kotlinx.android.synthetic.main.activity_sign_up.*
+import java.util.regex.Pattern
 
 /**
  * A login screen that offers login via email/password.
@@ -184,13 +184,19 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     }
 
     private fun isEmailValid(email: String): Boolean {
-        //TODO: Replace this with your own logic
-        return email.contains("@")
+        return Pattern.compile(
+                "^(([\\w-]+\\.)+[\\w-]+|([a-zA-Z]|[\\w-]{2,}))@"
+                        + "((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
+                        + "[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\."
+                        + "([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
+                        + "[0-9]{1,2}|25[0-5]|2[0-4][0-9]))|"
+                        + "([a-zA-Z]+[\\w-]+\\.)+[a-zA-Z]{2,4})$"
+        ).matcher(email).matches()
     }
 
     private fun isPasswordValid(password: String): Boolean {
         //TODO: Replace this with your own logic
-        return password.length > 4
+        return password.length > 6
     }
 
     /**
