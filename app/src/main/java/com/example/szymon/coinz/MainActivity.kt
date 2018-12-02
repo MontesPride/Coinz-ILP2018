@@ -99,12 +99,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private var LastDate: String = ""
     private var LastTimestamp: Long = 0
     private var CoinzExchanged: Int = 0
+    private var CoinzReceived = 0
     private var Quests: MutableList<HashMap<String, Any>> = arrayListOf()
     private var Rerolled = false
-    private var CollectedQUID = 0
-    private var CollectedPENY = 0
-    private var CollectedDOLR = 0
-    private var CollectedSHIL = 0
     private var invalidDateAndTimeSnackbar: Snackbar? = null
     private var vibratorService: Vibrator? = null
 
@@ -315,12 +312,65 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             val currencyName = featureProperties!!["currency"].asString
             val currencyValue = featureProperties["value"].asString
             val markerColor = featureProperties["marker-color"].asString
+            val markerSymbol = featureProperties["marker-symbol"].asString
             var icon: Icon
             when (markerColor) {
-                "#ff0000" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.mapbox_marker_icon_default)
-                "#008000" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker)
-                "#0000ff" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker)
-                "#ffdf00" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker)
+                //"#ff0000" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.mapbox_marker_icon_default)
+                "#ff0000" -> when (markerSymbol) {
+                    "0" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_0)
+                    "1" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_1)
+                    "2" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_2)
+                    "3" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_3)
+                    "4" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_4)
+                    "5" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_5)
+                    "6" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_6)
+                    "7" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_7)
+                    "8" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_8)
+                    "9" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_9)
+                    else -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker)
+                }
+                //"#008000" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker)
+                "#008000" -> when (markerSymbol) {
+                    "0" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_0)
+                    "1" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_1)
+                    "2" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_2)
+                    "3" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_3)
+                    "4" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_4)
+                    "5" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_5)
+                    "6" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_6)
+                    "7" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_7)
+                    "8" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_8)
+                    "9" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_9)
+                    else -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker)
+                }
+                //"#0000ff" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker)
+                "#0000ff" -> when (markerSymbol) {
+                    "0" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_0)
+                    "1" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_1)
+                    "2" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_2)
+                    "3" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_3)
+                    "4" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_4)
+                    "5" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_5)
+                    "6" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_6)
+                    "7" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_7)
+                    "8" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_8)
+                    "9" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_9)
+                    else -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker)
+                }
+                //"#ffdf00" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker)
+                "#ffdf00" -> when (markerSymbol) {
+                    "0" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_0)
+                    "1" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_1)
+                    "2" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_2)
+                    "3" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_3)
+                    "4" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_4)
+                    "5" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_5)
+                    "6" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_6)
+                    "7" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_7)
+                    "8" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_8)
+                    "9" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_9)
+                    else -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker)
+                }
                 else -> icon = IconFactory.getInstance(this).fromResource(R.drawable.purple_marker)
             }
             marker = map?.addMarker(MarkerOptions()
@@ -334,6 +384,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     }
 
     private fun getCoinzData() {
+        if (FirebaseAuth.getInstance().currentUser?.uid == null) {
+            finish()
+        }
+
         FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                 .get()
                 .addOnSuccessListener {
@@ -355,13 +409,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     Quests = it.get("Quests") as MutableList<HashMap<String, Any>>
                     Rerolled = it.get("Rerolled") as Boolean
 
-                    Log.d(tag, "[getCoinzData] ${Timestamp.now().seconds}, $LastTimestamp")
+                    Log.d(tag, "[getCoinzData] $currentDate, ${Timestamp.now().seconds}, $LastTimestamp")
                     if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
+                        Log.d(tag, "[getCoinzData] New Day!")
                         CollectedID  = arrayListOf()
                         CoinzExchanged = 0
+                        CoinzReceived = 0
+                        Rerolled = false
 
                         for (i in (0..1)) {
-                            if (Quests.size <= 10) {
+                            if (Quests.size < 10) {
                                 val Amount = (3..6).shuffled().first()
                                 val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
                                 val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
@@ -374,7 +431,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                             }
                         }
                         FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
-                                .update("Quests", Quests)
+                                .update("CollectedID", CollectedID,
+                                        "CoinzExchanged", CoinzExchanged,
+                                        "CoinzReceived", CoinzReceived,
+                                        "LastDate", currentDate,
+                                        "Quests", Quests,
+                                        "Rerolled", Rerolled)
                                 .addOnSuccessListener {
                                     Log.d(tag, "[getCoinzData] New quest added")
                                 }
@@ -385,6 +447,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                         @Suppress("UNCHECKED_CAST")
                         CollectedID = it.get("CollectedID") as MutableList<String>
                         CoinzExchanged = it.get("CoinzExchanged").toString().toInt()
+                        CoinzReceived = it.get("CoinzReceived").toString().toInt()
                     }
 
                     /*if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
@@ -449,6 +512,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         userData.put("LastDate", currentDate)
         userData.put("LastTimestamp", Timestamp.now().seconds)
         userData.put("CoinzExchanged", CoinzExchanged)
+        userData.put("CoinzReceived", CoinzReceived)
         userData.put("Username", Username!!)
         userData.put("Rerolled", Rerolled)
         userData.put("Quests", Quests)
@@ -456,6 +520,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         /*for (ID in CollectedID) {
             Log.d(tag, "[setCoinzData] $ID")
         }*/
+        if (FirebaseAuth.getInstance().currentUser?.uid == null) {
+            finish()
+        }
+
         FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                 .set(userData)
                 .addOnSuccessListener {
@@ -491,7 +559,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     private fun checkCoinz() {
         if (this::originLocation.isInitialized && markersDisplyed) {
-            Log.d(tag, "[checkCoinz] Checking if there are coinz within 15 meters")
+            Log.d(tag, "[checkCoinz] Checking if there are coinz within 25 meters")
             val featureList = FeatureCollection.fromJson(coinzMapData).features()
             for (feature in featureList!!) {
                 if (feature.properties()!!["id"].asString in CollectedID) continue
@@ -502,7 +570,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                 val originLatitude = Math.toRadians(originLocation.latitude)
                 val originLongitude = Math.toRadians(originLocation.longitude)
                 val distance = distanceBetweenCoordinates(coinzLatitude, coinzLongitude, originLatitude, originLongitude)
-                if (distance <= 15) {
+                if (distance <= 25) {
                     Log.d(tag, "[checkCoinz] dist(in meters): $distance, coinzLatLong: $coinzLatitude|$coinzLongitude, originLatLong: $originLatitude|$originLongitude")
                     if (feature.properties()!!["id"].asString !in CollectedID) {
                         Log.d(tag, "[checkCoinz] Feature not in collected")
@@ -591,6 +659,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     cameraMode = CameraMode.TRACKING
                     renderMode = RenderMode.NORMAL
                 }
+                val lifecycle = getLifecycle()
+                lifecycle.addObserver(locationLayerPlugin)
             }
         }
     }
@@ -639,6 +709,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     public override fun onStart() {
         super.onStart()
+        mapView?.onStart()
+
+        Log.d(tag, "[onStart] App is onStart")
+
+        if (::locationEngine.isInitialized) {
+            if (locationEngine != null) {
+                try {
+                    locationEngine.requestLocationUpdates()
+                } catch (throwable: SecurityException) {
+                    locationEngine.addLocationEngineListener(this)
+                }
+            }
+        }
+
+
+
+
         if (FirebaseAuth.getInstance().currentUser?.uid == null) {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
@@ -656,8 +743,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Log.d(tag, "[onStart] geoJSON maps are up to date")
             coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
         }
-        getCoinzData()
-        mapView?.onStart()
+        if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+            getCoinzData()
+        }
+
+
     }
 
     override fun onBackPressed() {
@@ -668,6 +758,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     public override fun onResume() {
         super.onResume()
         mapView?.onResume()
+        Log.d(tag, "[onResume] App is onResume")
         if (fromStop) {
             Log.d(tag, "[onResume] Asking for permission")
             fromStop = false
@@ -703,19 +794,49 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             startActivity(Intent(this, SignUpActivity::class.java))
         }
 
+        if (::locationEngine.isInitialized) {
+            if (locationEngine != null) {
+                try {
+                    locationEngine.requestLocationUpdates()
+                } catch (throwable: SecurityException) {
+                    locationEngine.addLocationEngineListener(this)
+                }
+            }
+        }
+
     }
 
     public override fun onPause() {
         super.onPause()
+        mapView?.onPause()
         Log.d(tag, "[onPause] App is onPause")
+
+        if(::locationEngine.isInitialized) {
+            if (locationEngine != null) {
+                locationEngine.removeLocationEngineListener(this)
+                locationEngine.removeLocationUpdates()
+            }
+        }
         if (locationServicesDisabledSnackbar?.isShown == true) {
             locationServicesDisabledSnackbar?.dismiss()
         }
-        mapView?.onPause()
+
     }
 
     public override fun onStop() {
         super.onStop()
+        mapView?.onStop()
+
+        if(::locationEngine.isInitialized) {
+            if (locationEngine != null) {
+                locationEngine.removeLocationEngineListener(this)
+                locationEngine.removeLocationUpdates()
+            }
+        }
+
+
+
+
         Log.d(tag, "[onStop] App is onStop")
         fromStop = true
         Log.d(tag, "[onStop] Storing lastDownloadDate of '$downloadDate'")
@@ -726,7 +847,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         editor.putFloat("GOLD", GOLD!!.toFloat())
         editor.apply()
 
-        mapView?.onStop()
+
     }
 
     override fun onLowMemory() {

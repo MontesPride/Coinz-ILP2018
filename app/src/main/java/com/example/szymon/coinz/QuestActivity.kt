@@ -27,7 +27,13 @@ class QuestActivity : AppCompatActivity() {
     }
 
     private fun displayQuests() {
-        quest_listView.adapter = QuestAdapter(this)
+        if (Quests.size <= 0) {
+            quest_noNewQuestsTextView.visibility = View.VISIBLE
+        } else {
+            quest_noNewQuestsTextView.visibility = View.GONE
+            quest_listView.adapter = QuestAdapter(this)
+        }
+
     }
 
     inner class QuestAdapter(context: Context): BaseAdapter(){

@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.activity_bank.*
 import org.json.JSONObject
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.regex.Pattern
 
 class BankActivity : AppCompatActivity() {
 
@@ -30,6 +31,9 @@ class BankActivity : AppCompatActivity() {
     private var LastTimestamp: Long = 0
     private var currentDate = ""
     private var Username = ""
+    private var CoinzReceived = 0
+    private var Quests: MutableList<HashMap<String, Any>> = arrayListOf()
+    private var Rerolled = false
     private var rates = JSONObject()
     private var exchangeCoinzPrefix = "You can exchange "
     private var exchangeCoinzSufix = " Coinz"
@@ -65,6 +69,17 @@ class BankActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    private fun isEmailValid(email: String): Boolean {
+        return Pattern.compile(
+                "^(([\\w-]+\\.)+[\\w-]+|([a-zA-Z]|[\\w-]{2,}))@"
+                        + "((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
+                        + "[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\."
+                        + "([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?"
+                        + "[0-9]{1,2}|25[0-5]|2[0-4][0-9]))|"
+                        + "([a-zA-Z]+[\\w-]+\\.)+[a-zA-Z]{2,4})$"
+        ).matcher(email).matches()
     }
 
     private fun displayExchangeCoinz() {
@@ -197,23 +212,30 @@ class BankActivity : AppCompatActivity() {
             }
 
             coinView.findViewById<Button>(R.id.coinExchange).setOnClickListener {
-                Log.d(tag, "[onClickListener] Exchange Button clicked")
-                if (CoinzExchanged >= 25) {
-                    Log.d(tag, "[onClickListener] Transfering coinz")
-                    /*GOLD += coinzData[position]["Value"].toString().toDouble() * rates.get(coinzData[position]["Currency"].toString()).toString().toDouble()
-                    Log.d(tag, "$GOLD")
-                    coinzData.removeAt(position)
-                    Log.d(tag, CollectedID.toString())
-                    Log.d(tag, coinzData.toString())
-                    CoinzExchanged += 1
-                    Log.d(tag, "${FirebaseAuth.getInstance().currentUser?.email}")*/
-                    //setCoinzData()
+                Log.d(tag, "[onClickListener] Transfer Button clicked")
 
-                    val rate = rates.get(coinzData[position]["Currency"].toString()).toString().toDouble()
-                    val value = coinzData[position]["Value"].toString().toDouble()
-                    coinzData.removeAt(position)
-                    transferCoinz(bank_transferEmail.text.toString(), rate, value)
-                    displayTransferCoinz()
+                if (!isEmailValid(bank_transferEmail.text.toString())) {
+                    Log.d(tag, "[onClickListener] Invalid email")
+                    bank_transferEmail.error = getString(R.string.error_invalid_email)
+                    bank_transferEmail.requestFocus()
+                } else {
+                    if (CoinzExchanged >= 25) {
+                        Log.d(tag, "[onClickListener] Transfering coinz")
+                        /*GOLD += coinzData[position]["Value"].toString().toDouble() * rates.get(coinzData[position]["Currency"].toString()).toString().toDouble()
+                        Log.d(tag, "$GOLD")
+                        coinzData.removeAt(position)
+                        Log.d(tag, CollectedID.toString())
+                        Log.d(tag, coinzData.toString())
+                        CoinzExchanged += 1
+                        Log.d(tag, "${FirebaseAuth.getInstance().currentUser?.email}")*/
+                        //setCoinzData()
+
+                        val rate = rates.get(coinzData[position]["Currency"].toString()).toString().toDouble()
+                        val value = coinzData[position]["Value"].toString().toDouble()
+                        coinzData.removeAt(position)
+                        transferCoinz(bank_transferEmail.text.toString(), rate, value)
+                        displayTransferCoinz()
+                    }
                 }
             }
             return coinView
@@ -247,6 +269,10 @@ class BankActivity : AppCompatActivity() {
                     LastDate = it.get("LastDate") as String
                     LastTimestamp = it.get("LastTimestamp") as Long
                     Username = it.get("Username") as String
+                    CoinzReceived = it.get("CoinzReceived").toString().toInt()
+                    @Suppress("UNCHECKED_CAST")
+                    Quests = it.get("Quests") as MutableList<HashMap<String, Any>>
+                    Rerolled = it.get("Rerolled") as Boolean
                     Log.d(tag, "[getCoinzData] ${Timestamp.now().seconds}, $LastTimestamp")
                     if (LastDate != currentDate && Timestamp.now().seconds < LastTimestamp) {
                         CollectedID  = arrayListOf()
@@ -263,11 +289,6 @@ class BankActivity : AppCompatActivity() {
 
                     //CoinzDataDowloaded = true
 
-                    Log.d(tag, "[getCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
-                    for (ID in CollectedID) {
-                        Log.d(tag, "[getCoinzData] $ID")
-                    }
-
                     bank_GOLDvalue.text = "%.1f".format(GOLD)
                     if (CoinzExchanged < 25) {
                         bank_exchangedTextView.text = exchangeCoinzPrefix + (25 - CoinzExchanged).toString() + exchangeCoinzSufix
@@ -275,7 +296,15 @@ class BankActivity : AppCompatActivity() {
                         bank_exchangedTextView.text = getString(R.string.NoExchangesLeft)
                     }
                     Log.d(tag, "[getCoinzData] Successfully downloaded coinzData")
-                    displayExchangeCoinz()
+
+                    Log.d(tag, "[getCoinzData] exchange button_enabled: ${bank_exchangeButton.isEnabled}")
+
+                    if (!bank_exchangeButton.isEnabled) {
+                        displayExchangeCoinz()
+                    } else {
+                        Log.d(tag, "displaying transfer coinz")
+                        displayTransferCoinz()
+                    }
 
                 }
                 .addOnFailureListener {
@@ -285,22 +314,16 @@ class BankActivity : AppCompatActivity() {
 
     private fun setCoinzData(Operation: String) {
         val userData = HashMap<String, Any>()
-        /*userData.put("QUID", 1)
-        userData.put("PENY", 1)
-        userData.put("DOLR", 1)
-        userData.put("SHIL", 1)*/
         userData.put("GOLD", GOLD)
-        //userData.put("CollectedID", Arrays.asList(""))
         userData.put("CollectedID", CollectedID)
-        //userData.put("CollectedCoinz", listOf(""))
         userData.put("CollectedCoinz", coinzData)
         userData.put("LastDate", currentDate)
         userData.put("LastTimestamp", Timestamp.now().seconds)
         userData.put("CoinzExchanged", CoinzExchanged)
         userData.put("Username", Username)
-        for (ID in CollectedID) {
-            Log.d(tag, "[setCoinzData] $ID")
-        }
+        userData.put("CoinzReceived", CoinzReceived)
+        userData.put("Quests", Quests)
+        userData.put("Rerolled", Rerolled)
         FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                 .set(userData)
                 .addOnSuccessListener {
@@ -320,6 +343,7 @@ class BankActivity : AppCompatActivity() {
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[setCoinzData] ${it.message.toString()}")
+                    getCoinzData()
                 }
     }
 
@@ -336,29 +360,37 @@ class BankActivity : AppCompatActivity() {
                     if (it.signInMethods!!.size <= 0) {
                         bank_transferEmail.error = getString(R.string.error_incorrect_email)
                         bank_transferEmail.requestFocus()
+                        getCoinzData()
                         return@addOnSuccessListener
                     } else {
                         FirebaseFirestore.getInstance().collection("Coinz").document(targetEmail)
                                 .get()
                                 .addOnSuccessListener {
                                     var GOLD = it.get("GOLD").toString().toDouble()
-                                    GOLD += coinzTransferRate*coinzValue
-                                    FirebaseFirestore.getInstance().collection("Coinz").document(targetEmail)
-                                            .update("GOLD", GOLD)
-                                            .addOnSuccessListener {
-                                                Log.d(tag, "[transferCoinz] Coin successfully transfered")
-                                                setCoinzData("transfer")
-                                                Toast.makeText(this, getString(R.string.SuccessfulTransfer), Toast.LENGTH_LONG).show()
-                                            }
-                                            .addOnFailureListener {
-                                                Log.d(tag, "[transferCoinz] ${it.message.toString()}")
-                                            }
+                                    var CoinzReceived = it.get("CoinzReceived").toString().toInt()
+                                    if (CoinzReceived >= 25) {
+                                        Log.d(tag, "[transferCoinz] Traget player already received 25 coinz today.")
+                                        getCoinzData()
+                                    } else {
+                                        GOLD += coinzTransferRate*coinzValue
+                                        CoinzReceived += 1
+                                        FirebaseFirestore.getInstance().collection("Coinz").document(targetEmail)
+                                                .update("GOLD", GOLD,
+                                                        "CoinzReceived", CoinzReceived)
+                                                .addOnSuccessListener {
+                                                    Log.d(tag, "[transferCoinz] Coin successfully transfered")
+                                                    setCoinzData("transfer")
+                                                    Toast.makeText(this, getString(R.string.SuccessfulTransfer), Toast.LENGTH_LONG).show()
+                                                }
+                                                .addOnFailureListener {
+                                                    Log.d(tag, "[transferCoinz] ${it.message.toString()}")
+                                                }
+                                    }
                                 }
                                 .addOnFailureListener {
                                     Log.d(tag, "[transferCoinz] ${it.message.toString()}")
                                 }
                     }
-
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[transferCoinz] ${it.message.toString()}")

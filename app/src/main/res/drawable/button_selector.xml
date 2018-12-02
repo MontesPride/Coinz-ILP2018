@@ -8,21 +8,11 @@
         </shape>
     </item>
 
-    <!--released state. -->
     <item android:state_pressed="false">
         <shape android:shape="rectangle">
             <corners android:radius="25dp"/>
             <solid android:color="@android:color/holo_blue_bright"/>
         </shape>
     </item>
-
-    <!--pressed state. -->
-    <!--<item android:state_pressed="true">
-        <shape android:shape="rectangle">
-            <corners android:radius="25dp"/>
-            <solid android:color="#FF0000"/>
-            <stroke android:color="#0000FF" android:width="2dp"/>
-        </shape>
-    </item>-->
 
 </selector>
