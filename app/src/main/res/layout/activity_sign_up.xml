@@ -100,12 +100,11 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
 
-            <!--<com.shobhitpuri.custombuttons.GoogleSignInButton
+            <com.google.android.gms.common.SignInButton
                 android:id="@+id/google_sign_up_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/action_sign_up_google"
-                android:background="@drawable/rounded_button_google"/>-->
+                />
 
             <TextView
                 android:id="@+id/go_to_login"

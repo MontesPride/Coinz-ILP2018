@@ -19,8 +19,12 @@
     <string name="TransferSameEmail">You cannot transfer Coinz to yourself</string>
     <string name="PlayerRanking">Player Ranking</string>
     <string name="DailyQuests">Daily Quests</string>
+    <string name="TransferHistory">Transfer History</string>
     <string name="NoDailyQuests">There are no more quests today.</string>
+    <string name="NoTransfers">There are no transfers in your history</string>
     <string name="RerollQuest">Reroll</string>
+    <string name="DeleteAll">Delete All</string>
+    <string name="Delete">Delete</string>
     <string name="LoadingData">Loading&#8230;</string>
     <string name="SuccessfulTransfer">Coin successfully transferred</string>
     <string name="access_token">pk.eyJ1IjoibTBudGVzIiwiYSI6ImNqbnZwejhqMDAwbDYzdm11Mm1td3lncDAifQ.1hbLQjREfwCIqq289JfPig</string>

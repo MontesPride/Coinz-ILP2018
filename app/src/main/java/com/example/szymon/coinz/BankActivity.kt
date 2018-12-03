@@ -34,6 +34,7 @@ class BankActivity : AppCompatActivity() {
     private var CoinzReceived = 0
     private var Quests: MutableList<HashMap<String, Any>> = arrayListOf()
     private var Rerolled = false
+    private var TransferHistory: MutableList<HashMap<String, Any>> = arrayListOf()
     private var rates = JSONObject()
     private var exchangeCoinzPrefix = "You can exchange "
     private var exchangeCoinzSufix = " Coinz"
@@ -273,6 +274,8 @@ class BankActivity : AppCompatActivity() {
                     @Suppress("UNCHECKED_CAST")
                     Quests = it.get("Quests") as MutableList<HashMap<String, Any>>
                     Rerolled = it.get("Rerolled") as Boolean
+                    @Suppress("UNCHECKED_CAST")
+                    TransferHistory = it.get("TransferHistory") as MutableList<HashMap<String, Any>>
                     Log.d(tag, "[getCoinzData] ${Timestamp.now().seconds}, $LastTimestamp")
                     if (LastDate != currentDate && Timestamp.now().seconds < LastTimestamp) {
                         CollectedID  = arrayListOf()
@@ -324,6 +327,7 @@ class BankActivity : AppCompatActivity() {
         userData.put("CoinzReceived", CoinzReceived)
         userData.put("Quests", Quests)
         userData.put("Rerolled", Rerolled)
+        userData.put("TransferHistory", TransferHistory)
         FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                 .set(userData)
                 .addOnSuccessListener {
@@ -366,17 +370,25 @@ class BankActivity : AppCompatActivity() {
                         FirebaseFirestore.getInstance().collection("Coinz").document(targetEmail)
                                 .get()
                                 .addOnSuccessListener {
-                                    var GOLD = it.get("GOLD").toString().toDouble()
-                                    var CoinzReceived = it.get("CoinzReceived").toString().toInt()
-                                    if (CoinzReceived >= 25) {
+                                    @Suppress("UNCHECKED_CAST")
+                                    val TargetTransferHistory = it.get("TransferHistory") as MutableList<HashMap<String, Any>>
+                                    var TargetGOLD = it.get("GOLD").toString().toDouble()
+                                    var TargetCoinzReceived = it.get("CoinzReceived").toString().toInt()
+
+                                    if (TargetCoinzReceived >= 25) {
                                         Log.d(tag, "[transferCoinz] Traget player already received 25 coinz today.")
                                         getCoinzData()
                                     } else {
-                                        GOLD += coinzTransferRate*coinzValue
-                                        CoinzReceived += 1
+                                        TargetGOLD += coinzTransferRate*coinzValue
+                                        TargetCoinzReceived += 1
+                                        val TargetTransferData = HashMap<String, Any>()
+                                        TargetTransferData.put("From", Username)
+                                        TargetTransferData.put("Amount", coinzTransferRate*coinzValue)
+                                        TargetTransferHistory.add(TargetTransferData)
                                         FirebaseFirestore.getInstance().collection("Coinz").document(targetEmail)
-                                                .update("GOLD", GOLD,
-                                                        "CoinzReceived", CoinzReceived)
+                                                .update("GOLD", TargetGOLD,
+                                                        "CoinzReceived", TargetCoinzReceived,
+                                                        "TransferHistory", TargetTransferHistory)
                                                 .addOnSuccessListener {
                                                     Log.d(tag, "[transferCoinz] Coin successfully transfered")
                                                     setCoinzData("transfer")

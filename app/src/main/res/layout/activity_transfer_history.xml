@@ -3,53 +3,54 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".QuestActivity">
+    tools:context=".TransferHistoryActivity">
 
     <TextView
-        android:id="@+id/quest_DailyQuests"
+        android:id="@+id/transferHistory_TransferHistoryTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/DailyQuests"
+        android:text="@string/TransferHistory"
         android:textStyle="bold"
         android:textSize="30sp"
         android:gravity="center"/>
 
     <View
-        android:id="@+id/quest_horizontalTopLine"
+        android:id="@+id/transferHistory_horizontalTopLine"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="#c0c0c0"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
-        android:layout_below="@+id/quest_DailyQuests"
-        />
+        android:layout_below="@+id/transferHistory_TransferHistoryTextView" />
 
     <TextView
-        android:id="@+id/quest_noNewQuestsTextView"
+        android:id="@+id/transferHistory_noTransfers"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="@string/NoDailyQuests"
+        android:text="@string/NoTransfers"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp"
         android:visibility="gone"
         android:layout_marginTop="8dp"
         android:textSize="25sp"
-        android:layout_below="@id/quest_horizontalTopLine"/>
+        android:layout_below="@id/transferHistory_horizontalTopLine"/>
 
     <ListView
-        android:id="@+id/quest_listView"
+        android:id="@+id/transferHistory_listView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:horizontalSpacing="10dp"
         android:verticalSpacing="20dp"
-        android:layout_below="@+id/quest_horizontalTopLine" />
+        android:layout_below="@+id/transferHistory_horizontalTopLine" />
 
     <View
-        android:id="@+id/quest_horizontalBottomLine"
+        android:id="@+id/transferHistory_horizontalBottomLine"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="#c0c0c0"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/quest_listView"
+        android:layout_below="@+id/transferHistory_listView"
         />
 
 </RelativeLayout>

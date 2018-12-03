@@ -1,41 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp">
 
             <TextView
                 android:id="@+id/ranking_username"
                 android:layout_height="wrap_content"
                 android:textSize="21sp"
-                android:layout_width="wrap_content"
-                android:gravity="center_vertical"
+                android:layout_width="210dp"
+                android:gravity="start"
                 android:layout_marginStart="15dp"
-                android:layout_marginEnd="3dp"
-                android:singleLine="true"
-                android:maxLines="1"/>
+                android:layout_marginEnd="8dp" />
 
-            <View
-                android:id="@+id/ranking_verticalLine"
-                android:layout_width="2dp"
-                android:layout_height="33dp"
-                android:background="#c0c0c0"
-                android:layout_centerHorizontal="true"
-                android:layout_marginLeft="15dp"
-                android:layout_marginRight="15dp"
-                />
 
             <TextView
                 android:id="@+id/ranking_gold"
                 android:textSize="21sp"
                 android:layout_marginEnd="15dp"
-                android:layout_marginStart="3dp"
-                android:gravity="center_vertical"
+                android:layout_marginStart="8dp"
+                android:layout_gravity="end"
+                android:gravity="end"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:singleLine="true"
                 android:maxLines="1"
-                android:layout_toEndOf="@+id/ranking_verticalLine"
-                android:layout_marginBottom="5dp"/>
+                android:layout_marginBottom="5dp"
+                android:layout_toEndOf="@+id/ranking_username"/>
 
 
 </RelativeLayout>

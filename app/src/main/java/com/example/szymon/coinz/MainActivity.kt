@@ -102,6 +102,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private var CoinzReceived = 0
     private var Quests: MutableList<HashMap<String, Any>> = arrayListOf()
     private var Rerolled = false
+    private var TransferHistory: MutableList<HashMap<String, Any>> = arrayListOf()
     private var invalidDateAndTimeSnackbar: Snackbar? = null
     private var vibratorService: Vibrator? = null
 
@@ -170,8 +171,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             //Snackbar.make(it, "Signed out, uid: ${FirebaseAuth.getInstance().currentUser?.uid}", Snackbar.LENGTH_LONG).show()
         }//top left
 
-        displayMarkersButton.setOnClickListener {
+        /*displayMarkersButton.setOnClickListener {
             getCoinzData()
+        } // top middle*/
+
+        displayMarkersButton.setOnClickListener {
+            startActivity(Intent(this, TransferHistoryActivity::class.java))
         } // top middle
 
         showCoinz.setOnClickListener {
@@ -408,6 +413,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     @Suppress("UNCHECKED_CAST")
                     Quests = it.get("Quests") as MutableList<HashMap<String, Any>>
                     Rerolled = it.get("Rerolled") as Boolean
+                    @Suppress("UNCHECKED_CAST")
+                    TransferHistory = it.get("TransferHistory") as MutableList<HashMap<String, Any>>
 
                     Log.d(tag, "[getCoinzData] $currentDate, ${Timestamp.now().seconds}, $LastTimestamp")
                     if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
@@ -516,6 +523,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         userData.put("Username", Username!!)
         userData.put("Rerolled", Rerolled)
         userData.put("Quests", Quests)
+        userData.put("TransferHistory", TransferHistory)
         Log.d(tag, "[setCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
         /*for (ID in CollectedID) {
             Log.d(tag, "[setCoinzData] $ID")
@@ -714,13 +722,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         Log.d(tag, "[onStart] App is onStart")
 
         if (::locationEngine.isInitialized) {
-            if (locationEngine != null) {
                 try {
                     locationEngine.requestLocationUpdates()
                 } catch (throwable: SecurityException) {
                     locationEngine.addLocationEngineListener(this)
                 }
-            }
+
         }
 
 
@@ -795,13 +802,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         }
 
         if (::locationEngine.isInitialized) {
-            if (locationEngine != null) {
                 try {
                     locationEngine.requestLocationUpdates()
                 } catch (throwable: SecurityException) {
                     locationEngine.addLocationEngineListener(this)
                 }
-            }
         }
 
     }
@@ -812,10 +817,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         Log.d(tag, "[onPause] App is onPause")
 
         if(::locationEngine.isInitialized) {
-            if (locationEngine != null) {
                 locationEngine.removeLocationEngineListener(this)
                 locationEngine.removeLocationUpdates()
-            }
+
         }
         if (locationServicesDisabledSnackbar?.isShown == true) {
             locationServicesDisabledSnackbar?.dismiss()
@@ -828,10 +832,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         mapView?.onStop()
 
         if(::locationEngine.isInitialized) {
-            if (locationEngine != null) {
                 locationEngine.removeLocationEngineListener(this)
                 locationEngine.removeLocationUpdates()
-            }
+
         }
 
 
