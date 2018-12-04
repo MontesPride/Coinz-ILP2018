@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">Coinz</string>
     <string name="action_settings">Settings</string>
     <string name="Bank">Bank</string>
     <string name="exchangeRates">Exchange Rates</string>
@@ -14,6 +13,9 @@
     <string name="Exchange">Exchange</string>
     <string name="Transfer">Transfer</string>
     <string name="ExchangesLeftPlaceholder">You can exchange 25 Coinz</string>
+    <string name="ExchangeCoinz">You can exchange %1$d Coinz</string>
+    <string name="RatesValue">%1$.3f</string>
+    <string name="GoldAmount">%1$.1f</string>
     <string name="NoExchangesLeft">Come back tomorrow to exchange more Coinz</string>
     <string name="SomeExchangesLeft">You need to exchange 25 Coinz first</string>
     <string name="TransferSameEmail">You cannot transfer Coinz to yourself</string>
@@ -37,6 +39,7 @@
     <string name="action_sign_up">Register</string>
     <string name="action_sign_up_google">Register with Google</string>
     <string name="action_sign_in_short">Sign in</string>
+    <string name="BackToRegistration">Back to Registration</string>
     <string name="action_already_registered">Already have an account</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>

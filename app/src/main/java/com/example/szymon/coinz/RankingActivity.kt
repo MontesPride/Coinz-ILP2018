@@ -72,13 +72,13 @@ class RankingActivity : AppCompatActivity() {
 
         FirebaseFirestore.getInstance().collection("Coinz")
                 .get()
-                .addOnSuccessListener {
+                .addOnSuccessListener { data ->
                     val userDataTempList: MutableList<HashMap<String, Any>> = arrayListOf()
-                    for (document in it.documents) {
+                    for (document in data.documents) {
                         Log.d(tag, "[onStart] ${document.get("Username")}, ${document.get("GOLD")}")
                         val userDataTemp = HashMap<String, Any>()
-                        userDataTemp.put("Username", document.get("Username")!!)
-                        userDataTemp.put("Gold", document.get("GOLD")!!)
+                        userDataTemp["Username"] = document.get("Username")!!
+                        userDataTemp["Gold"] = document.get("GOLD")!!
                         userDataTempList.add(userDataTemp)
                     }
                     userDataTempList.sortByDescending{it["Gold"].toString().toDouble()}

@@ -20,6 +20,7 @@
             android:enabled="false"
             android:text="@string/Exchange"
             android:layout_weight="2"
+            style="?android:attr/buttonBarButtonStyle"
             android:background="@drawable/button_selector"/>
 
         <Button
@@ -30,6 +31,7 @@
             android:text="@string/Transfer"
             android:layout_height="wrap_content"
             android:layout_weight="2"
+            style="?android:attr/buttonBarButtonStyle"
             android:background="@drawable/button_selector"/>
 
     </TableRow>
@@ -45,17 +47,12 @@
          android:textAlignment="center"
          android:textSize="40sp"/> -->
 
-     <TableLayout
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_below="@id/bank_buttons"
-         android:id="@+id/bank_goldTable" >
-
          <TableRow
              android:id="@+id/bank_goldRow"
-             android:layout_width="wrap_content"
+             android:layout_width="match_parent"
              android:layout_height="wrap_content"
-             android:weightSum="2">
+             android:weightSum="2"
+             android:layout_below="@+id/bank_buttons">
 
              <TextView
                  android:layout_weight="1"
@@ -76,13 +73,11 @@
 
          </TableRow>
 
-     </TableLayout>
-
     <View
         android:id="@+id/bank_lineUnderGold"
         android:layout_width="fill_parent"
         android:layout_height="2dp"
-        android:layout_below="@+id/bank_goldTable"
+        android:layout_below="@+id/bank_goldRow"
         android:background="#c0c0c0"
         android:layout_marginLeft="100dp"
         android:layout_marginRight="100dp" />
@@ -117,7 +112,7 @@
                  android:layout_weight="1"
                  android:padding="2dp"
                  android:gravity="end"
-                 android:layout_marginRight="10dp"
+                 android:layout_marginEnd="10dp"
                  android:textSize="17sp"
                  android:text="@string/QUID" />
 
@@ -125,7 +120,7 @@
                  android:id="@+id/bank_QUIDvalue"
                  android:layout_weight="1"
                  android:padding="3dp"
-                 android:layout_marginLeft="10dp"
+                 android:layout_marginStart="10dp"
                  android:textSize="17sp"
                  android:text="@string/Placeholder_zero" />
 
@@ -140,7 +135,7 @@
              <TextView
                  android:layout_weight="1"
                  android:padding="3dip"
-                 android:layout_marginRight="10dp"
+                 android:layout_marginEnd="10dp"
                  android:gravity="end"
                  android:textSize="17sp"
                  android:text="@string/PENY" />
@@ -149,7 +144,7 @@
                  android:id="@+id/bank_PENYvalue"
                  android:layout_weight="1"
                  android:padding="3dip"
-                 android:layout_marginLeft="10dp"
+                 android:layout_marginStart="10dp"
                  android:textSize="17sp"
                  android:text="@string/Placeholder_zero" />
 
@@ -164,7 +159,7 @@
              <TextView
                  android:layout_weight="1"
                  android:padding="3dip"
-                 android:layout_marginRight="10dp"
+                 android:layout_marginEnd="10dp"
                  android:gravity="end"
                  android:textSize="17sp"
                  android:text="@string/DOLR" />
@@ -173,7 +168,7 @@
                  android:id="@+id/bank_DOLRvalue"
                  android:layout_weight="1"
                  android:padding="3dip"
-                 android:layout_marginLeft="10dp"
+                 android:layout_marginStart="10dp"
                  android:textSize="17sp"
                  android:text="@string/Placeholder_zero" />
 
@@ -188,7 +183,7 @@
              <TextView
                  android:layout_weight="1"
                  android:padding="3dip"
-                 android:layout_marginRight="10dp"
+                 android:layout_marginEnd="10dp"
                  android:gravity="end"
                  android:textSize="17sp"
                  android:text="@string/SHIL" />
@@ -197,7 +192,7 @@
                  android:id="@+id/bank_SHILvalue"
                  android:layout_weight="1"
                  android:padding="3dip"
-                 android:layout_marginLeft="10dp"
+                 android:layout_marginStart="10dp"
                  android:textSize="17sp"
                  android:text="@string/Placeholder_zero" />
 

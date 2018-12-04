@@ -43,6 +43,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingLeft="15dp"
+                    android:paddingRight="15dp"
                     android:hint="@string/prompt_email"
                     android:inputType="textEmailAddress"
                     android:maxLines="1"
@@ -60,7 +61,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_password"
+                    android:importantForAutofill="no"
                     android:paddingLeft="15dp"
+                    android:paddingRight="15dp"
                     android:imeActionId="6"
                     android:imeActionLabel="@string/action_sign_in_short"
                     android:imeOptions="actionUnspecified"
@@ -88,7 +91,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="17sp"
                 android:gravity="center_horizontal"
-                android:text="Back to Registration" />
+                android:text="@string/BackToRegistration" />
 
         </LinearLayout>
     </ScrollView>

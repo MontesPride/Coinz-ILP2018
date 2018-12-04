@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -24,6 +23,14 @@
         android:layout_marginTop="10dp"
         android:layout_below="@+id/ranking_PlayerRanking"
         />
+
+    <!--<View
+        android:id="@+id/ranking_verticalLine"
+        android:layout_width="2dp"
+        android:layout_height="match_parent"
+        android:background="#c0c0c0"
+        android:layout_marginStart="223dp"
+        android:layout_below="@+id/ranking_horizontalTopLine"/>-->
 
     <ListView
         android:id="@+id/ranking_listView"

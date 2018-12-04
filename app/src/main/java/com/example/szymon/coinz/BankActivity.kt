@@ -52,7 +52,7 @@ class BankActivity : AppCompatActivity() {
             bank_transferButton.isEnabled = true
             displayExchangeCoinz()
             if (CoinzExchanged < 25) {
-                bank_exchangedTextView.text = exchangeCoinzPrefix + (25 - CoinzExchanged).toString() + exchangeCoinzSufix
+                bank_exchangedTextView.text = String.format(getString(R.string.ExchangeCoinz), 25 - CoinzExchanged)
             } else {
                 viewSwitcher?.showNext()
                 bank_exchangedTextView.text = getString(R.string.NoExchangesLeft)
@@ -69,7 +69,6 @@ class BankActivity : AppCompatActivity() {
                 viewSwitcher?.showNext()
             }
         }
-
     }
 
     private fun isEmailValid(email: String): Boolean {
@@ -251,11 +250,11 @@ class BankActivity : AppCompatActivity() {
         GOLD = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE).getFloat("GOLD", 0.0.toFloat()).toDouble()
         //Log.d(tag, coinzMapData)
         rates = JSONObject(coinzMapData).get("rates") as JSONObject
-        bank_QUIDvalue.text = "%.3f".format(rates.get("QUID"))
-        bank_PENYvalue.text = "%.3f".format(rates.get("PENY"))
-        bank_DOLRvalue.text = "%.3f".format(rates.get("DOLR"))
-        bank_SHILvalue.text = "%.3f".format(rates.get("SHIL"))
-        bank_GOLDvalue.text = "%.1f".format(GOLD)
+        bank_QUIDvalue.text = String.format(getString(R.string.RatesValue), rates.get("QUID"))
+        bank_PENYvalue.text = String.format(getString(R.string.RatesValue), rates.get("PENY"))
+        bank_DOLRvalue.text = String.format(getString(R.string.RatesValue), rates.get("DOLR"))
+        bank_SHILvalue.text = String.format(getString(R.string.RatesValue), rates.get("SHIL"))
+        bank_GOLDvalue.text = String.format(getString(R.string.GoldAmount), GOLD)
         //Log.d(tag, rates.get("SHIL").toString())
     }
 
@@ -317,17 +316,17 @@ class BankActivity : AppCompatActivity() {
 
     private fun setCoinzData(Operation: String) {
         val userData = HashMap<String, Any>()
-        userData.put("GOLD", GOLD)
-        userData.put("CollectedID", CollectedID)
-        userData.put("CollectedCoinz", coinzData)
-        userData.put("LastDate", currentDate)
-        userData.put("LastTimestamp", Timestamp.now().seconds)
-        userData.put("CoinzExchanged", CoinzExchanged)
-        userData.put("Username", Username)
-        userData.put("CoinzReceived", CoinzReceived)
-        userData.put("Quests", Quests)
-        userData.put("Rerolled", Rerolled)
-        userData.put("TransferHistory", TransferHistory)
+        userData["GOLD"] = GOLD
+        userData["CollectedID"] = CollectedID
+        userData["CollectedCoinz"] = coinzData
+        userData["LastDate"] = currentDate
+        userData["LastTimestamp"] = Timestamp.now().seconds
+        userData["CoinzExchanged"] = CoinzExchanged
+        userData["Username"] = Username
+        userData["CoinzReceived"] = CoinzReceived
+        userData["Quests"] = Quests
+        userData["Rerolled"] = Rerolled
+        userData["TransferHistory"] = TransferHistory
         FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                 .set(userData)
                 .addOnSuccessListener {
@@ -369,11 +368,11 @@ class BankActivity : AppCompatActivity() {
                     } else {
                         FirebaseFirestore.getInstance().collection("Coinz").document(targetEmail)
                                 .get()
-                                .addOnSuccessListener {
+                                .addOnSuccessListener { document ->
                                     @Suppress("UNCHECKED_CAST")
-                                    val TargetTransferHistory = it.get("TransferHistory") as MutableList<HashMap<String, Any>>
-                                    var TargetGOLD = it.get("GOLD").toString().toDouble()
-                                    var TargetCoinzReceived = it.get("CoinzReceived").toString().toInt()
+                                    val TargetTransferHistory = document.get("TransferHistory") as MutableList<HashMap<String, Any>>
+                                    var TargetGOLD = document.get("GOLD").toString().toDouble()
+                                    var TargetCoinzReceived = document.get("CoinzReceived").toString().toInt()
 
                                     if (TargetCoinzReceived >= 25) {
                                         Log.d(tag, "[transferCoinz] Traget player already received 25 coinz today.")
@@ -382,8 +381,8 @@ class BankActivity : AppCompatActivity() {
                                         TargetGOLD += coinzTransferRate*coinzValue
                                         TargetCoinzReceived += 1
                                         val TargetTransferData = HashMap<String, Any>()
-                                        TargetTransferData.put("From", Username)
-                                        TargetTransferData.put("Amount", coinzTransferRate*coinzValue)
+                                        TargetTransferData["From"] = Username
+                                        TargetTransferData["Amount"] = coinzTransferRate*coinzValue
                                         TargetTransferHistory.add(TargetTransferData)
                                         FirebaseFirestore.getInstance().collection("Coinz").document(targetEmail)
                                                 .update("GOLD", TargetGOLD,
@@ -394,13 +393,13 @@ class BankActivity : AppCompatActivity() {
                                                     setCoinzData("transfer")
                                                     Toast.makeText(this, getString(R.string.SuccessfulTransfer), Toast.LENGTH_LONG).show()
                                                 }
-                                                .addOnFailureListener {
-                                                    Log.d(tag, "[transferCoinz] ${it.message.toString()}")
+                                                .addOnFailureListener { e ->
+                                                    Log.d(tag, "[transferCoinz] ${e.message.toString()}")
                                                 }
                                     }
                                 }
-                                .addOnFailureListener {
-                                    Log.d(tag, "[transferCoinz] ${it.message.toString()}")
+                                .addOnFailureListener { e ->
+                                    Log.d(tag, "[transferCoinz] ${e.message.toString()}")
                                 }
                     }
                 }

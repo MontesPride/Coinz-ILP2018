@@ -272,8 +272,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     .build()
                     .getRoute(object: Callback<DirectionsResponse> {
                         override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>) {
-                            val routeResponse = response
-                            val body = routeResponse.body() ?: return
+                            val body = response.body() ?: return
                             if (body.routes().count() == 0) {
                                 Log.d(tag, "[getRoute] No routes found")
                                 return
@@ -430,10 +429,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                                 val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
                                 val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
                                 val Quest = HashMap<String, Any>()
-                                Quest.put("Amount", Amount)
-                                Quest.put("Currency", Currency)
-                                Quest.put("Reward", Reward)
-                                Quest.put("CompletionStage", 0)
+                                Quest["Amount"] = Amount
+                                Quest["Currency"] = Currency
+                                Quest["Reward"] = Reward
+                                Quest["CompletionStage"] = 0
                                 Quests.add(Quest)
                             }
                         }
@@ -447,8 +446,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                                 .addOnSuccessListener {
                                     Log.d(tag, "[getCoinzData] New quest added")
                                 }
-                                .addOnFailureListener {
-                                    Log.d(tag, "[getCoinzData] ${it.message.toString()}")
+                                .addOnFailureListener { e ->
+                                    Log.d(tag, "[getCoinzData] ${e.message.toString()}")
                                 }
                     } else {
                         @Suppress("UNCHECKED_CAST")
@@ -511,19 +510,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         userData.put("PENY", 1)
         userData.put("DOLR", 1)
         userData.put("SHIL", 1)*/
-        userData.put("GOLD", GOLD!!)
+        userData["GOLD"] = GOLD!!
         //userData.put("CollectedID", Arrays.asList(""))
-        userData.put("CollectedID", CollectedID)
+        userData["CollectedID"] = CollectedID
         //userData.put("CollectedCoinz", listOf(""))
-        userData.put("CollectedCoinz", CollectedCoinz)
-        userData.put("LastDate", currentDate)
-        userData.put("LastTimestamp", Timestamp.now().seconds)
-        userData.put("CoinzExchanged", CoinzExchanged)
-        userData.put("CoinzReceived", CoinzReceived)
-        userData.put("Username", Username!!)
-        userData.put("Rerolled", Rerolled)
-        userData.put("Quests", Quests)
-        userData.put("TransferHistory", TransferHistory)
+        userData["CollectedCoinz"] = CollectedCoinz
+        userData["LastDate"] = currentDate
+        userData["LastTimestamp"] = Timestamp.now().seconds
+        userData["CoinzExchanged"] = CoinzExchanged
+        userData["CoinzReceived"] = CoinzReceived
+        userData["Username"] = Username!!
+        userData["Rerolled"] = Rerolled
+        userData["Quests"] = Quests
+        userData["TransferHistory"] = TransferHistory
         Log.d(tag, "[setCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
         /*for (ID in CollectedID) {
             Log.d(tag, "[setCoinzData] $ID")
@@ -561,8 +560,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         val radius = 6371
         val difLat = Lat2 - Lat1
         val difLong = Long2 - Long1
-        val result = 1000*2*radius*Math.asin(Math.sqrt(((1 - Math.cos(difLat))/2) + Math.cos(Lat1)*Math.cos(Lat2)*((1 - Math.cos(difLong))/2)))
-        return result
+        return 1000*2*radius*Math.asin(Math.sqrt(((1 - Math.cos(difLat))/2) + Math.cos(Lat1)*Math.cos(Lat2)*((1 - Math.cos(difLong))/2)))
+
     }
 
     private fun checkCoinz() {
@@ -582,19 +581,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     Log.d(tag, "[checkCoinz] dist(in meters): $distance, coinzLatLong: $coinzLatitude|$coinzLongitude, originLatLong: $originLatitude|$originLongitude")
                     if (feature.properties()!!["id"].asString !in CollectedID) {
                         Log.d(tag, "[checkCoinz] Feature not in collected")
-                        //CollectedCoinz += feature
                         val Coin = HashMap<String, Any>()
-                        Coin.put("Currency", feature.properties()!!["currency"].asString)
-                        Coin.put("Value", feature.properties()!!["value"].asDouble)
-                        //Coin.put("ID", feature.properties()!!["id"].asString)
+                        Coin["Currency"] = feature.properties()!!["currency"].asString
+                        Coin["Value"] = feature.properties()!!["value"].asDouble
                         CollectedCoinz.add(Coin)
                         Log.d(tag, "[checkCoinz] Added Coin to collectedCoinz")
                         CollectedID.add(feature.properties()!!["id"].asString)
                         Log.d(tag, "[checkCoinz] Added CoinID to collectedID")
                         Log.d(tag, "[checkCoinz] Size of CollectedID: ${CollectedID.size}")
-                        /*for (ID in CollectedID) {
-                            Log.d(tag, "[checkCoinz] $ID")
-                        }*/
                         for (quest in Quests) {
                             if (quest["Currency"].toString() == feature.properties()!!["currency"].asString) {
 
@@ -606,14 +600,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                             }
                         }
                         Quests.removeIf{it["CompletionStage"].toString().toInt() >= it["Amount"].toString().toInt()}
-
-
-                        //Log.d(tag, "[checkCoinz] featureID: ${feature.properties()!!["id"]}")
-                        //Log.d(tag, "[checkCoinz]$QUID,$PENY,$DOLR,$SHIL,$GOLD,${CollectedID}")
                         setCoinzData()
-                        //Log.d(tag, "[checkCoinz] Sent data to Firestore")
                         for (marker in markers) {
-                            //Log.d(tag, "[checkCoinz] I am in for loop")
                             if (marker?.position == LatLng(coordinatesAsList[1], coordinatesAsList[0]) && marker.title == feature.properties()!!["currency"].asString && marker.snippet == feature.properties()!!["value"].asString) {
                                 Log.d(tag, "[checkCoinz] Removing marker")
                                 map?.removeMarker(marker)
@@ -623,10 +611,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     }
                 }
             }
-            /*for (feature in CollectedCoinz) {
-                Log.d(tag, "[checkCoinz] ${feature.properties()!!["currency"].asString}, ${feature.properties()!!["value"].asString}")
-            }*/
-
         } else {
             Log.d(tag, "[checkCoinz] originLocation not initialized or markers not displayed")
         }
@@ -912,8 +896,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         private fun loadFileFromNetwork(urlString: String): String {
             val stream : InputStream = downloadUrl(urlString)
             // Read input from stream, build result as a string
-            val result = stream.bufferedReader().use { it.readText() }
-            return result
+            return stream.bufferedReader().use { it.readText() }
         }
 
         @Throws(IOException::class)

@@ -13,8 +13,6 @@ import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_transfer_history.*
-import org.w3c.dom.Text
-import java.io.UncheckedIOException
 
 class TransferHistoryActivity : AppCompatActivity() {
 

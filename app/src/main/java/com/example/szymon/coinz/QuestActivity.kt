@@ -100,11 +100,11 @@ class QuestActivity : AppCompatActivity() {
         val Amount = (3..6).shuffled().first()
         val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
         val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
-        newQuest.put("Amount", Amount)
-        newQuest.put("Currency", Currency)
-        newQuest.put("Reward", Reward)
-        newQuest.put("CompletionStage", 0)
-        Quests.set(index, newQuest)
+        newQuest["Amount"] = Amount
+        newQuest["Currency"] = Currency
+        newQuest["Reward"] = Reward
+        newQuest["CompletionStage"] = 0
+        Quests[index] = newQuest
         Rerolled = true
         setQuestData()
 

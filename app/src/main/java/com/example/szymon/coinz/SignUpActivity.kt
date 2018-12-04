@@ -22,7 +22,6 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 
 import android.Manifest.permission.READ_CONTACTS
-import android.content.ClipData
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
@@ -37,10 +36,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firestore.v1beta1.FirestoreGrpc
 
 import kotlinx.android.synthetic.main.activity_sign_up.*
-import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -223,8 +220,8 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                                     .addOnSuccessListener {
                                         Log.d(tag, "[addData] Successfully added data to Firestore")
                                     }
-                                    .addOnFailureListener {
-                                        Log.d(tag, "[addData] ${it.message.toString()}")
+                                    .addOnFailureListener { e ->
+                                        Log.d(tag, "[addData] ${e.message.toString()}")
                                     }
 
                             val profileUpdates = UserProfileChangeRequest.Builder()
@@ -284,8 +281,8 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
                     FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
                             .get()
-                            .addOnSuccessListener {
-                                if(it.exists()) {
+                            .addOnSuccessListener { document ->
+                                if(document.exists()) {
                                     showProgress(false)
                                     startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
                                 } else {
@@ -298,9 +295,9 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                                                 showProgress(false)
                                                 startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
                                             }
-                                            .addOnFailureListener {
+                                            .addOnFailureListener { e ->
                                                 showProgress(false)
-                                                Log.d(tag, "[addData] ${it.message.toString()}")
+                                                Log.d(tag, "[addData] ${e.message.toString()}")
                                             }
                                 }
                             }
@@ -317,27 +314,27 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     private fun createUserDocument(username: String, email: String): HashMap<String, Any> {
 
         val userData = HashMap<String, Any>()
-        userData.put("GOLD", 0)
-        userData.put("CollectedCoinz", listOf<HashMap<String, Any>>())
-        userData.put("CollectedID", listOf<String>())
-        userData.put("LastDate", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")))
-        userData.put("LastTimestamp", Timestamp.now().seconds)
-        userData.put("CoinzExchanged", 0)
-        userData.put("CoinzReceived", 0)
-        userData.put("Username", username)
-        userData.put("Rerolled", false)
-        userData.put("TransferHistory", listOf<HashMap<String, Any>>())
+        userData["GOLD"] = 0
+        userData["CollectedCoinz"] = listOf<HashMap<String, Any>>()
+        userData["CollectedID"] = listOf<String>()
+        userData["LastDate"] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
+        userData["LastTimestamp"] = Timestamp.now().seconds
+        userData["CoinzExchanged"] = 0
+        userData["CoinzReceived"] = 0
+        userData["Username"] = username
+        userData["Rerolled"] = false
+        userData["TransferHistory"] = listOf<HashMap<String, Any>>()
         val Amount = (3..6).shuffled().first()
         val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
         val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
         val Quests: MutableList<HashMap<String, Any>> = arrayListOf()
         val Quest = HashMap<String, Any>()
-        Quest.put("Amount", Amount)
-        Quest.put("Currency", Currency)
-        Quest.put("Reward", Reward)
-        Quest.put("CompletionStage", 0)
+        Quest["Amount"] = Amount
+        Quest["Currency"] = Currency
+        Quest["Reward"] = Reward
+        Quest["CompletionStage"] = 0
         Quests.add(Quest)
-        userData.put("Quests", Quests)
+        userData["Quests"] = Quests
 
         return userData
     }
@@ -354,7 +351,6 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     }
 
     private fun isPasswordValid(password: String): Boolean {
-        //TODO: Replace this with your own logic
         return password.length > 6
     }
 
