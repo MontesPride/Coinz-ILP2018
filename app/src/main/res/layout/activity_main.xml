@@ -10,71 +10,6 @@
         android:id="@+id/include"
         layout="@layout/content_main" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/goToLogin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/goToSignUp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/signOut"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/displayMarkersButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="@dimen/fab_margin"
-        android:visibility="gone"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/addData"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:visibility="gone"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/showCoinz"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical|end"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/addGOLD"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/stat_sys_upload_done" />
-
     <TextView
         android:id="@+id/main_WagerTextView"
         android:layout_width="wrap_content"
@@ -82,9 +17,82 @@
         android:textSize="25sp"
         android:padding="8dp"
         android:layout_marginTop="15dp"
-        android:layout_marginEnd="15dp"
-        android:layout_gravity="end"
+        android:layout_marginStart="15dp"
+        android:layout_gravity="top|start"
         android:visibility="gone"
         android:background="#d3e4ff"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/main_OpenMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@android:drawable/ic_menu_compass"
+        app:backgroundTint="@color/dark_blue" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/main_Ranking"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|bottom"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:layout_marginStart="70dp"
+        android:src="@drawable/cup_icon"
+        android:backgroundTint="@color/dark_blue"
+        android:visibility="invisible"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/main_Race"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|bottom"
+        android:layout_marginBottom="110dp"
+        android:layout_marginStart="70dp"
+        android:src="@drawable/race_icon"
+        android:backgroundTint="@color/dark_blue"
+        android:visibility="invisible"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/main_Bank"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="110dp"
+        android:src="@drawable/bank_icon"
+        android:backgroundTint="@color/dark_blue"
+        android:visibility="invisible"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/main_Transfer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="110dp"
+        android:layout_marginEnd="70dp"
+        android:src="@drawable/transfer_icon"
+        android:backgroundTint="@color/dark_blue"
+        android:visibility="invisible"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/main_Quest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:layout_marginEnd="70dp"
+        android:src="@drawable/quest_icon"
+        android:backgroundTint="@color/dark_blue"
+        android:visibility="invisible"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/main_SignOut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@drawable/signout_icon"
+        android:backgroundTint="@color/dark_blue"/>
+
 
 </android.support.design.widget.CoordinatorLayout>

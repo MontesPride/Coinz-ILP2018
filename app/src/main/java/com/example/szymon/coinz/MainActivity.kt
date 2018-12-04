@@ -110,6 +110,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private var invalidDateAndTimeSnackbar: Snackbar? = null
     private var vibratorService: Vibrator? = null
 
+    private var visibleButtons = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -117,102 +119,47 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         mAuth = FirebaseAuth.getInstance()
         mStore = FirebaseFirestore.getInstance()
 
-        //fab.setOnClickListener { view ->
-        //    Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-        //           .setAction("Action", null).show()
-        //}
+        main_OpenMenu.setOnClickListener {
+            if (visibleButtons) {
+                main_Ranking.hide()
+                main_Race.hide()
+                main_Bank.hide()
+                main_Transfer.hide()
+                main_Quest.hide()
+            } else {
+                main_Ranking.show()
+                main_Race.show()
+                main_Bank.show()
+                main_Transfer.show()
+                main_Quest.show()
+            }
+            visibleButtons = !visibleButtons
+        }
 
-        /*fab.setOnClickListener {view ->
-            Snackbar.make(view, "${mAuth.currentUser?.displayName}", Snackbar.LENGTH_LONG).show()
+        main_Ranking.setOnClickListener {
+            startActivity(Intent(this, RankingActivity::class.java))
+        }
 
-            val Quest = HashMap<String, Any>()
+        main_Race.setOnClickListener {
+            startActivity(Intent(this, RaceActivity::class.java))
+        }
 
-            Quest.put("Amount", 4)
-            Quest.put("Currency", "SHIL")
-            Quest.put("Reward", 150)
-            Quest.put("CompletionStage", 3)
-            Quests.add(Quest)
+        main_Bank.setOnClickListener {
+            startActivity(Intent(this, BankActivity::class.java))
+        }
 
-            Quest.put("Amount", 4)
-            Quest.put("Currency", "SHIL")
-            Quest.put("Reward", 150)
-            Quest.put("CompletionStage", 3)
-            Quests.add(Quest)
-
-            Quest.put("Amount", 4)
-            Quest.put("Currency", "SHIL")
-            Quest.put("Reward", 150)
-            Quest.put("CompletionStage", 3)
-            Quests.add(Quest)
-
-            Quest.put("Amount", 4)
-            Quest.put("Currency", "SHIL")
-            Quest.put("Reward", 150)
-            Quest.put("CompletionStage", 3)
-            Quests.add(Quest)
-
-        }*/ //bottom middle
-
-        fab.setOnClickListener {
+        main_Transfer.setOnClickListener {
             startActivity(Intent(this, TransferHistoryActivity::class.java))
         }
 
-        /*goToLogin.setOnClickListener {
-            startActivity(Intent(this, LoginActivity::class.java))
-        }//bottom left*/
-
-        goToLogin.setOnClickListener {
-            startActivity(Intent(this, RankingActivity::class.java))
-        }//bottom left
-
-        /*goToSignUp.setOnClickListener {
-            startActivity(Intent(this, SignUpActivity::class.java))
-        }//bottom right*/
-
-        goToSignUp.setOnClickListener {
+        main_Quest.setOnClickListener {
             startActivity(Intent(this, QuestActivity::class.java))
-        }//bottom right
+        }
 
-        signOut.setOnClickListener {
+        main_SignOut.setOnClickListener {
             mAuth.signOut()
             finish()
-            //Snackbar.make(it, "Signed out, uid: ${mAuth.currentUser?.uid}", Snackbar.LENGTH_LONG).show()
-        }//top left
-
-        /*displayMarkersButton.setOnClickListener {
-            getCoinzData()
-        } // top middle*/
-
-        displayMarkersButton.setOnClickListener {
-            startActivity(Intent(this, TransferHistoryActivity::class.java))
-        } // top middle
-
-        /*showCoinz.setOnClickListener {
-            Snackbar.make(it, "G:$GOLD", Snackbar.LENGTH_LONG).show()
-            Log.d(tag, "[showCoinz] Size of CollectedID: ${CollectedID.size}")
-            for (ID in CollectedID) {
-                Log.d(tag, "[showCoinz] $ID")
-            }
-            //Log.d(tag, markers.toString())
-        }   //center right*/
-
-        showCoinz.setOnClickListener {
-            startActivity(Intent(this, RaceActivity::class.java))
-        }   //center right
-
-        addData.setOnClickListener {
-            setCoinzData()
-        }//top right
-
-        /*addGOLD.setOnClickListener {
-            GOLD = GOLD?.plus(1)
-        } //center left*/
-
-        addGOLD.setOnClickListener {
-            startActivity(Intent(this, BankActivity::class.java))
-        } //center left
-
-
+        }
 
         vibratorService = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
