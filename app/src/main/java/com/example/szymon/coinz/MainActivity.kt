@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import com.google.firebase.Timestamp
 import com.google.firebase.Timestamp.now
 import com.google.firebase.auth.FirebaseAuth
@@ -55,6 +56,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineListener, PermissionsListener {
@@ -80,7 +82,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private var markers = ArrayList<Marker?>()
     private var markersDisplyed = false
     private var mapReady = false
-    private var CoinzDataDowloaded = false
+    private var coinzDataDownloaded = false
 
     private var locationServicesDisabledSnackbar: Snackbar? = null
     private var isItStart = true
@@ -92,22 +94,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private lateinit var locationLayerPlugin : LocationLayerPlugin
     private var locationEnabled = false
 
-    private var GOLD: Double? = null
-    private var Username: String? = null
-    private var CollectedCoinz: MutableList<HashMap<String, Any>> = arrayListOf()
-    private var CollectedID: MutableList<String> = arrayListOf()
-    private var LastDate: String = ""
-    private var LastTimestamp: Long = 0
-    private var CoinzExchanged: Int = 0
-    private var CoinzReceived = 0
-    private var Quests: MutableList<HashMap<String, Any>> = arrayListOf()
-    private var Rerolled = false
-    private var TransferHistory: MutableList<HashMap<String, Any>> = arrayListOf()
-    private var AllCollectedToday = false
-    private var WageredToday = false
-    private var Wager = HashMap<String, Any>()
-    private lateinit var WagerTimer: CountDownTimer
+    private var gold: Double? = null
+    private var username: String? = null
+    private var collectedCoinz: MutableList<HashMap<String, Any>> = arrayListOf()
+    private var collectedID: MutableList<String> = arrayListOf()
+    private var lastDate: String = ""
+    private var lastTimestamp: Long = 0
+    private var coinzExchanged: Int = 0
+    private var coinzReceived = 0
+    private var quests: MutableList<HashMap<String, Any>> = arrayListOf()
+    private var rerolled = false
+    private var newQuestAdded = false
+    private var transferHistory: MutableList<HashMap<String, Any>> = arrayListOf()
+    private var allCollectedToday = false
+    private var wageredToday = false
+    private var wager = HashMap<String, Any>()
+    private lateinit var wagerTimer: CountDownTimer
+
     private var invalidDateAndTimeSnackbar: Snackbar? = null
+
     private var vibratorService: Vibrator? = null
 
     private var visibleButtons = false
@@ -116,9 +121,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        //Initalising Firebase instances
         mAuth = FirebaseAuth.getInstance()
         mStore = FirebaseFirestore.getInstance()
 
+        //Setting up buttons' onClickListeners
         main_OpenMenu.setOnClickListener {
             if (visibleButtons) {
                 main_Ranking.hide()
@@ -178,6 +185,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             mapReady = true
             Log.d(tag, "[onMapReady] mapboxMap is ready")
             map = mapboxMap
+            //Setting up onMarkerClickListeners to display routing between player and a marker
             map?.setOnMarkerClickListener { marker ->
                 if (this::originLocation.isInitialized) {
                     Log.d(tag, "[onMarkerClick] originLocation initalized")
@@ -194,7 +202,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
             enableLocation()
             //displayMarkers()
-            if (!markersDisplyed && CoinzDataDowloaded) {
+            if (!markersDisplyed && coinzDataDownloaded) {
                 Log.d(tag, "[onMapReady] Displaying markers")
                 markersDisplyed = true
                 displayMarkers()
@@ -202,6 +210,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         }
     }
 
+    //Retrieving route between player and a marker
     private fun getRoute(origin: Point, destination: Point) {
         if (destination == currentDestination && navigationMapRoute != null) {
             navigationMapRoute?.removeRoute()
@@ -235,6 +244,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         }
     }
 
+    //Asking user to enable location services
     private fun enableLocation(){
         if(PermissionsManager.areLocationPermissionsGranted(this)){
             Log.d(tag, "[enableLocation] Permissions are granted")
@@ -249,10 +259,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         }
     }
 
+    //Displaying all the markers, skipping collected ones
     private fun displayMarkers() {
         val featureList = FeatureCollection.fromJson(coinzMapData).features()
         for (feature in featureList!!) {
-            if (feature.properties()!!["id"].asString in CollectedID) continue
+            if (feature.properties()!!["id"].asString in collectedID) continue
             val featureGeometry = feature.geometry().takeIf { it?.type() == "Point" } as Point
             val featureProperties = feature.properties()
             val coordinatesAsList = featureGeometry.coordinates()
@@ -327,6 +338,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         checkCoinz()
     }
 
+    //Retrieving user Data from Firestore
     private fun getCoinzData() {
         if (mAuth.currentUser?.uid == null) {
             finish()
@@ -337,137 +349,147 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     Log.d(tag, "[getData] Successfully retrieved data from Firestore")
                     Log.d(tag, "uid: ${mAuth.currentUser?.email}")
 
-                    GOLD = it.get("GOLD").toString().toDouble()
+                    gold = it.get("GOLD").toString().toDouble()
                     @Suppress("UNCHECKED_CAST")
-                    CollectedCoinz = it.get("CollectedCoinz") as MutableList<HashMap<String, Any>>
-                    LastDate = it.get("LastDate") as String
-                    LastTimestamp = it.get("LastTimestamp") as Long
-                    Username = it.get("Username") as String
+                    collectedCoinz = it.get("CollectedCoinz") as MutableList<HashMap<String, Any>>
+                    lastDate = it.get("LastDate") as String
+                    lastTimestamp = it.get("LastTimestamp") as Long
+                    username = it.get("Username") as String
                     @Suppress("UNCHECKED_CAST")
-                    Quests = it.get("Quests") as MutableList<HashMap<String, Any>>
-                    Rerolled = it.get("Rerolled") as Boolean
+                    quests = it.get("Quests") as MutableList<HashMap<String, Any>>
+                    rerolled = it.get("Rerolled") as Boolean
                     @Suppress("UNCHECKED_CAST")
-                    TransferHistory = it.get("TransferHistory") as MutableList<HashMap<String, Any>>
-                    AllCollectedToday = it.get("AllCollectedToday") as Boolean
+                    transferHistory = it.get("TransferHistory") as MutableList<HashMap<String, Any>>
+                    allCollectedToday = it.get("AllCollectedToday") as Boolean
                     @Suppress("UNCHECKED_CAST")
-                    Wager = it.get("Wager") as HashMap<String, Any>
-                    WageredToday = it.get("WageredToday") as Boolean
+                    wager = it.get("Wager") as HashMap<String, Any>
+                    wageredToday = it.get("WageredToday") as Boolean
 
-                    Log.d(tag, "[getCoinzData] $currentDate, ${Timestamp.now().seconds}, $LastTimestamp")
-
-                    if (!Wager.isEmpty()) {
-                        if (Wager["Time"].toString().toInt() + Wager["Start"].toString().toInt() - Timestamp.now().seconds <= 0) {
-                            GOLD = GOLD!! - Wager["Reward"].toString().toInt()
-                            Wager = HashMap()
+                    //If there was a wager going on, and player has run out of time, take gold from his account
+                    if (!wager.isEmpty()) {
+                        if (wager["Time"].toString().toInt() + wager["Start"].toString().toInt() - Timestamp.now().seconds <= 0) {
+                            gold = gold!! - wager["Reward"].toString().toInt()
+                            wager = HashMap()
                             displayFinishedWager("Failure")
                             mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
-                                    .update("GOLD", GOLD,
-                                            "Wager", Wager)
+                                    .update("GOLD", gold,
+                                            "Wager", wager)
                                     .addOnSuccessListener {
                                         Log.d(tag, "[getCoinzData] Successfully updated Wager")
                                     }
                                     .addOnFailureListener { e ->
                                         Log.d(tag, "[getCoinzData] ${e.message.toString()}")
+                                        Toast.makeText(this, getString(R.string.UpdateDataFail), Toast.LENGTH_LONG).show()
                                     }
                         }
                     }
 
-                    if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
+                    //If there is a new day, reset some of the user's variables and add 2 new quests
+                    if (lastDate != currentDate && Timestamp.now().seconds >= lastTimestamp) {
                         Log.d(tag, "[getCoinzData] New Day!")
-                        CollectedID  = arrayListOf()
-                        CoinzExchanged = 0
-                        CoinzReceived = 0
-                        Rerolled = false
-                        AllCollectedToday = false
-                        WageredToday = false
+                        collectedID  = arrayListOf()
+                        coinzExchanged = 0
+                        coinzReceived = 0
+                        rerolled = false
+                        allCollectedToday = false
+                        wageredToday = false
 
                         for (i in (0..1)) {
-                            if (Quests.size < 10) {
-                                val Amount = (3..6).shuffled().first()
-                                val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
-                                val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
-                                val Quest = HashMap<String, Any>()
+                            if (quests.size < 10) {
+                                val amount = (3..6).shuffled().first()
+                                val currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
+                                val reward = arrayListOf(100, 150, 200, 300)[amount - 3]
+                                val quest = HashMap<String, Any>()
 
-                                Quest["Amount"] = Amount
-                                Quest["Currency"] = Currency
-                                Quest["Reward"] = Reward
-                                Quest["CompletionStage"] = 0
-                                Quests.add(Quest)
+                                quest["Amount"] = amount
+                                quest["Currency"] = currency
+                                quest["Reward"] = reward
+                                quest["CompletionStage"] = 0
+                                quests.add(quest)
+                                newQuestAdded = true
                             }
                         }
                         mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
-                                .update("CollectedID", CollectedID,
-                                        "CoinzExchanged", CoinzExchanged,
-                                        "CoinzReceived", CoinzReceived,
+                                .update("CollectedID", collectedID,
+                                        "CoinzExchanged", coinzExchanged,
+                                        "CoinzReceived", coinzReceived,
                                         "LastDate", currentDate,
-                                        "Quests", Quests,
-                                        "Rerolled", Rerolled,
-                                        "AllCollectedToday", AllCollectedToday,
-                                        "WageredToday", WageredToday)
+                                        "Quests", quests,
+                                        "Rerolled", rerolled,
+                                        "AllCollectedToday", allCollectedToday,
+                                        "WageredToday", wageredToday)
                                 .addOnSuccessListener {
+                                    if (newQuestAdded) {
+                                        newQuestAdded = !newQuestAdded
+                                        Toast.makeText(this, getString(R.string.NewDailyQuest), Toast.LENGTH_LONG).show()
+                                    }
                                     Log.d(tag, "[getCoinzData] New day, some values successfully reset")
                                 }
                                 .addOnFailureListener { e ->
                                     Log.d(tag, "[getCoinzData] ${e.message.toString()}")
+                                    Toast.makeText(this, getString(R.string.UpdateDataFail), Toast.LENGTH_LONG).show()
                                 }
                     } else {
                         @Suppress("UNCHECKED_CAST")
-                        CollectedID = it.get("CollectedID") as MutableList<String>
-                        CoinzExchanged = it.get("CoinzExchanged").toString().toInt()
-                        CoinzReceived = it.get("CoinzReceived").toString().toInt()
+                        collectedID = it.get("CollectedID") as MutableList<String>
+                        coinzExchanged = it.get("CoinzExchanged").toString().toInt()
+                        coinzReceived = it.get("CoinzReceived").toString().toInt()
                     }
-                    CoinzDataDowloaded = true
+                    coinzDataDownloaded = true
 
-                    Log.d(tag, "[getCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
-
-                    if (!markersDisplyed && mapReady && Timestamp.now().seconds >= LastTimestamp) {
+                    //If time and date isn't correctly set up on the user's phone, don't display markers and ask him to set it up correctly
+                    if (!markersDisplyed && mapReady && Timestamp.now().seconds >= lastTimestamp) {
                         Log.d(tag, "[getCoinzData] Displaying markers")
                         markersDisplyed = true
                         displayMarkers()
                     }
-                    if (Timestamp.now().seconds < LastTimestamp) {
+                    if (Timestamp.now().seconds < lastTimestamp) {
                         invalidDateAndTimeSnackbar?.show()
                     }
 
-                    if(!Wager.isEmpty()) {
+                    //If there is a wager going on, and players hasn't run out of time, display a timer
+                    if(!wager.isEmpty()) {
                         main_WagerTextView.visibility = View.VISIBLE
                         setWagerTimer()
                     }
-
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[getCoinzData] ${it.message.toString()}")
+                    Toast.makeText(this, getString(R.string.DownloadDataFail), Toast.LENGTH_LONG).show()
                 }
     }
 
+    //Update user data
     private fun setCoinzData() {
         val userData = HashMap<String, Any>()
-        userData["GOLD"] = GOLD!!
-        userData["CollectedID"] = CollectedID
-        userData["CollectedCoinz"] = CollectedCoinz
+        userData["GOLD"] = gold!!
+        userData["CollectedID"] = collectedID
+        userData["CollectedCoinz"] = collectedCoinz
         userData["LastDate"] = currentDate
         userData["LastTimestamp"] = Timestamp.now().seconds
-        userData["CoinzExchanged"] = CoinzExchanged
-        userData["CoinzReceived"] = CoinzReceived
-        userData["Username"] = Username!!
-        userData["Rerolled"] = Rerolled
-        userData["Quests"] = Quests
-        userData["TransferHistory"] = TransferHistory
-        userData["AllCollectedToday"] = AllCollectedToday
-        userData["Wager"] = Wager
-        userData["WageredToday"] = WageredToday
+        userData["CoinzExchanged"] = coinzExchanged
+        userData["CoinzReceived"] = coinzReceived
+        userData["Username"] = username!!
+        userData["Rerolled"] = rerolled
+        userData["Quests"] = quests
+        userData["TransferHistory"] = transferHistory
+        userData["AllCollectedToday"] = allCollectedToday
+        userData["Wager"] = wager
+        userData["WageredToday"] = wageredToday
 
-        Log.d(tag, "[setCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
+        Log.d(tag, "[setCoinzData] Size of CollectedID: ${collectedID.size}, LastDate: $lastDate, currentDate: $currentDate")
 
         if (mAuth.currentUser?.uid == null) {
             finish()
         }
 
-        if (!AllCollectedToday && CollectedID.size >= 50) {
-            AllCollectedToday = true
-            GOLD = GOLD!! + 2500
+        //If user has collected all coinz in a given day, give him extra 2500 gold
+        if (!allCollectedToday && collectedID.size >= 50) {
+            allCollectedToday = true
+            gold = gold!! + 2500
         }
 
+        //When user collects a coin and it is successfully added to Firestore, notify him of it by vibrating for 100 milliseconds
         mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .set(userData)
                 .addOnSuccessListener {
@@ -490,23 +512,28 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[setCoinzData] ${it.message.toString()}")
+                    Toast.makeText(this, getString(R.string.UpdateDataFail), Toast.LENGTH_LONG).show()
                 }
     }
 
+    //Function calculating distance between a player and a coin, based on Haversine formula
     private fun distanceBetweenCoordinates(Lat1:Double, Long1:Double, Lat2:Double, Long2:Double): Double{
         val radius = 6371
         val difLat = Lat2 - Lat1
         val difLong = Long2 - Long1
         return 1000*2*radius*Math.asin(Math.sqrt(((1 - Math.cos(difLat))/2) + Math.cos(Lat1)*Math.cos(Lat2)*((1 - Math.cos(difLong))/2)))
-
     }
 
+    //onLocationChanged, check if there are coinz in a 25 meters radius
     private fun checkCoinz() {
         if (this::originLocation.isInitialized && markersDisplyed) {
+
             Log.d(tag, "[checkCoinz] Checking if there are coinz within 25 meters")
             val featureList = FeatureCollection.fromJson(coinzMapData).features()
+
             for (feature in featureList!!) {
-                if (feature.properties()!!["id"].asString in CollectedID) continue
+
+                if (feature.properties()!!["id"].asString in collectedID) continue
                 val featureGeometry = feature.geometry() as Point
                 val coordinatesAsList = featureGeometry.coordinates()
                 val coinzLatitude = Math.toRadians(coordinatesAsList[1])
@@ -514,45 +541,53 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                 val originLatitude = Math.toRadians(originLocation.latitude)
                 val originLongitude = Math.toRadians(originLocation.longitude)
                 val distance = distanceBetweenCoordinates(coinzLatitude, coinzLongitude, originLatitude, originLongitude)
+
+                //there is a coin within 25 meters radius, add it to Firestore and remove its marker
                 if (distance <= 25) {
                     Log.d(tag, "[checkCoinz] dist(in meters): $distance, coinzLatLong: $coinzLatitude|$coinzLongitude, originLatLong: $originLatitude|$originLongitude")
-                    if (feature.properties()!!["id"].asString !in CollectedID) {
-                        Log.d(tag, "[checkCoinz] Feature not in collected")
-                        val Coin = HashMap<String, Any>()
-                        Coin["Currency"] = feature.properties()!!["currency"].asString
-                        Coin["Value"] = feature.properties()!!["value"].asDouble
-                        Coin["Time"] = Timestamp.now().seconds
-                        CollectedCoinz.add(Coin)
-                        Log.d(tag, "[checkCoinz] Added Coin to collectedCoinz")
-                        CollectedID.add(feature.properties()!!["id"].asString)
-                        Log.d(tag, "[checkCoinz] Added CoinID to collectedID")
-                        Log.d(tag, "[checkCoinz] Size of CollectedID: ${CollectedID.size}")
-                        for (quest in Quests) {
-                            if (quest["Currency"].toString() == feature.properties()!!["currency"].asString) {
 
+                    if (feature.properties()!!["id"].asString !in collectedID) {
+
+                        val coin = HashMap<String, Any>()
+                        coin["Currency"] = feature.properties()!!["currency"].asString
+                        coin["Value"] = feature.properties()!!["value"].asDouble
+                        coin["Time"] = Timestamp.now().seconds
+                        collectedCoinz.add(coin)
+                        Log.d(tag, "[checkCoinz] Added Coin to collectedCoinz")
+                        collectedID.add(feature.properties()!!["id"].asString)
+                        Log.d(tag, "[checkCoinz] Added CoinID to collectedID")
+                        Log.d(tag, "[checkCoinz] Size of CollectedID: ${collectedID.size}")
+
+                        //updating completion stage of a quest, if there is one
+                        for (quest in quests) {
+                            if (quest["Currency"].toString() == feature.properties()!!["currency"].asString) {
                                 quest["CompletionStage"] = quest["CompletionStage"].toString().toInt() + 1
+                                //if quest is completed, give player a promised reward
                                 if (quest["CompletionStage"].toString().toInt() >= quest["Amount"].toString().toInt()) {
-                                    GOLD = GOLD!! + quest["Reward"].toString().toDouble()
-                                    Log.d(tag, "[checkCoinz] Quest completed ${Quests.indexOf(quest)}, $GOLD")
+                                    gold = gold!! + quest["Reward"].toString().toDouble()
+                                    Log.d(tag, "[checkCoinz] Quest completed ${quests.indexOf(quest)}, $gold")
                                 }
                             }
                         }
-                        Quests.removeIf{it["CompletionStage"].toString().toInt() >= it["Amount"].toString().toInt()}
+                        //removing completed quests
+                        quests.removeIf{it["CompletionStage"].toString().toInt() >= it["Amount"].toString().toInt()}
 
-                        if (!Wager.isEmpty()) {
-                            Wager["CompletionStage"] = Wager["CompletionStage"].toString().toInt() + 1
+                        //if there is a wager going on, and players has collected all the necessary coinz, notify and reward him
+                        if (!wager.isEmpty()) {
+                            wager["CompletionStage"] = wager["CompletionStage"].toString().toInt() + 1
 
-                            if (Wager["CompletionStage"].toString().toInt() >= Wager["Amount"].toString().toInt()) {
-                                WagerTimer.cancel()
-                                GOLD = GOLD!! + Wager["Reward"].toString().toInt()
-                                Wager = HashMap()
+                            if (wager["CompletionStage"].toString().toInt() >= wager["Amount"].toString().toInt()) {
+                                wagerTimer.cancel()
+                                gold = gold!! + wager["Reward"].toString().toInt()
+                                wager = HashMap()
                                 displayFinishedWager("Success")
                             }
                         }
 
-
-
+                        //udpate user's coinz data in Firestore
                         setCoinzData()
+
+                        //remove collected markers from the map
                         for (marker in markers) {
                             if (marker?.position == LatLng(coordinatesAsList[1], coordinatesAsList[0]) && marker.title == feature.properties()!!["currency"].asString && marker.snippet == feature.properties()!!["value"].asString) {
                                 Log.d(tag, "[checkCoinz] Removing marker")
@@ -568,16 +603,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         }
     }
 
+    //creating Wager Timer as well as the function which takes player's gold if he fails to complete the challenge
     private fun setWagerTimer(){
-        val timeLeft = Wager["Time"].toString().toInt() - Timestamp.now().seconds + Wager["Start"].toString().toInt()
+        val timeLeft = wager["Time"].toString().toInt() - Timestamp.now().seconds + wager["Start"].toString().toInt()
         updateWagerTimer()
-        WagerTimer = object: CountDownTimer(timeLeft*1000, 1000){
+        wagerTimer = object: CountDownTimer(timeLeft*1000, 1000){
             override fun onFinish() {
-                GOLD = GOLD!! - Wager["Reward"].toString().toInt()
-                Wager = HashMap()
+                gold = gold!! - wager["Reward"].toString().toInt()
+                wager = HashMap()
                 mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
-                        .update("GOLD", GOLD,
-                                "Wager", Wager)
+                        .update("GOLD", gold,
+                                "Wager", wager)
                         .addOnSuccessListener {
                             Log.d(tag, "[setWagerTimer] Successfully updated Wager")
                         }
@@ -590,14 +626,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                 updateWagerTimer()
             }
         }
-        WagerTimer.start()
+        wagerTimer.start()
     }
 
+    //updating the timer
     private fun updateWagerTimer() {
-        val timeLeft = Wager["Time"].toString().toInt() - Timestamp.now().seconds + Wager["Start"].toString().toInt()
-        main_WagerTextView.text = String.format(getString(R.string.WagerTimer), timeLeft / 60, timeLeft - (timeLeft / 60) * 60, Wager["CompletionStage"], Wager["Amount"])
+        val timeLeft = wager["Time"].toString().toInt() - Timestamp.now().seconds + wager["Start"].toString().toInt()
+        main_WagerTextView.text = String.format(getString(R.string.WagerTimer), TimeUnit.SECONDS.toMinutes(timeLeft), timeLeft - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(timeLeft)), wager["CompletionStage"], wager["Amount"])
     }
 
+    //displaying appropriate message when player collects all necessary coinz or the time runs out
     private fun displayFinishedWager(result: String) {
         main_WagerTextView.visibility = View.VISIBLE
         if (result == "Success") {
@@ -723,18 +761,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
         }
 
-
-
-
+        //if user somehow enter this screen without being logged in, go back to SignUpActivity
         if (mAuth.currentUser?.uid == null) {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
+
+        //retrieving some basic information from a saved file
         val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
         downloadDate = settings.getString("lastDownloadDate", "")!!
         Log.d(tag, "[onStart] Recalled lastDownloadDate is '$downloadDate'")
-        GOLD = settings.getFloat("GOLD", 0.0.toFloat()).toDouble()
-        Log.d(tag, "[onStart] Recalled GOLD is '$GOLD'")
+        gold = settings.getFloat("GOLD", 0.0.toFloat()).toDouble()
+        Log.d(tag, "[onStart] Recalled GOLD is '$gold'")
 
+        //if there is a new day, download a new map
         currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
         if (currentDate != downloadDate) {
             val coinzMapUrl = coinzMapUrlPrefix + currentDate + coinzMapUrlSufix
@@ -743,6 +782,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Log.d(tag, "[onStart] geoJSON maps are up to date")
             coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
         }
+        //retrieve user's data from Firestore
         if (mAuth.currentUser?.uid != null) {
             getCoinzData()
         }
@@ -750,6 +790,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     }
 
+    //instead of going back to Login or SignUp Activity, go to home screen
     override fun onBackPressed() {
         super.onBackPressed()
         moveTaskToBack(true)
@@ -759,11 +800,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         super.onResume()
         mapView?.onResume()
         Log.d(tag, "[onResume] App is onResume")
+        //If permissions are not granted, ask for them again
         if (fromStop) {
             Log.d(tag, "[onResume] Asking for permission")
             fromStop = false
             permissionsManager.requestLocationPermissions(this)
         }
+        //If permissions are granted, make sure to enable location services again
         if(PermissionsManager.areLocationPermissionsGranted(this)){
             Log.d(tag, "[onResume] Permissions are granted")
             if (!locationEnabled) {
@@ -773,6 +816,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                 locationServicesDisabledSnackbar?.dismiss()
             }
         } else {
+            //if permissions are not granted, create a snackbar that will notify user
             Log.d(tag, "[onResume] Permissions are not granted")
             if (isItStart) {
                 isItStart = false
@@ -784,7 +828,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             }
         }
 
-        if (now().seconds >= LastTimestamp && invalidDateAndTimeSnackbar!!.isShown) {
+        if (now().seconds >= lastTimestamp && invalidDateAndTimeSnackbar!!.isShown) {
             invalidDateAndTimeSnackbar?.dismiss()
         }
 
@@ -815,23 +859,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         super.onStop()
         mapView?.onStop()
 
+        //this SIGSEGV fix caused my app to be unable to track user's location :(
         /*if(::locationEngine.isInitialized) {
                 locationEngine.removeLocationEngineListener(this)
                 locationEngine.removeLocationUpdates()
 
         }*/
 
-
-
-
+        //onStop, save some necessary data to a file
         Log.d(tag, "[onStop] App is onStop")
         fromStop = true
         Log.d(tag, "[onStop] Storing lastDownloadDate of '$downloadDate'")
         val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
         val editor = settings.edit()
         editor.putString("lastDownloadDate", downloadDate)
-        Log.d(tag, "[onStop] Storing GOLD of '$GOLD'")
-        editor.putFloat("GOLD", GOLD!!.toFloat())
+        Log.d(tag, "[onStop] Storing GOLD of '$gold'")
+        editor.putFloat("GOLD", gold!!.toFloat())
         editor.apply()
 
 
@@ -860,16 +903,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
+    //Just downloading a new map
     interface DownloadCompleteListener {
         fun downloadComplete(result: String)
     }

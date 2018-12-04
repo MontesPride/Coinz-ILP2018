@@ -25,13 +25,15 @@
         android:layout_below="@+id/ranking_PlayerRanking"
         />
 
-    <!--<View
-        android:id="@+id/ranking_verticalLine"
-        android:layout_width="2dp"
-        android:layout_height="match_parent"
-        android:background="#c0c0c0"
-        android:layout_marginStart="223dp"
-        android:layout_below="@+id/ranking_horizontalTopLine"/>-->
+    <TextView
+        android:id="@+id/ranking_noPlayers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/LoadingData"
+        android:layout_marginTop="8dp"
+        android:textSize="25sp"
+        android:layout_below="@id/ranking_horizontalTopLine"/>
 
     <ListView
         android:id="@+id/ranking_listView"

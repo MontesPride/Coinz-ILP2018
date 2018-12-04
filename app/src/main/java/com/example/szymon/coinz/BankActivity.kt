@@ -27,20 +27,20 @@ class BankActivity : AppCompatActivity() {
 
     private var coinzMapData: String = ""
     private var coinzData: MutableList<HashMap<String, Any>> = arrayListOf()
-    private var GOLD: Double = 0.0
-    private var CoinzExchanged = 0
-    private var CollectedID: MutableList<String> = arrayListOf()
-    private var LastDate: String = ""
-    private var LastTimestamp: Long = 0
+    private var gold: Double = 0.0
+    private var coinzExchanged = 0
+    private var collectedID: MutableList<String> = arrayListOf()
+    private var lastDate: String = ""
+    private var lastTimestamp: Long = 0
     private var currentDate = ""
-    private var Username = ""
-    private var CoinzReceived = 0
-    private var Quests: MutableList<HashMap<String, Any>> = arrayListOf()
-    private var Rerolled = false
-    private var TransferHistory: MutableList<HashMap<String, Any>> = arrayListOf()
-    private var AllCollectedToday = false
-    private var Wager = HashMap<String, Any>()
-    private var WageredToday = false
+    private var username = ""
+    private var coinzReceived = 0
+    private var quests: MutableList<HashMap<String, Any>> = arrayListOf()
+    private var rerolled = false
+    private var transferHistory: MutableList<HashMap<String, Any>> = arrayListOf()
+    private var allCollectedToday = false
+    private var wager = HashMap<String, Any>()
+    private var wageredToday = false
     private var rates = JSONObject()
     private var exchangeCoinzPrefix = "You can exchange "
     private var exchangeCoinzSufix = " Coinz"
@@ -51,17 +51,20 @@ class BankActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bank)
 
+        //Initialising Firebase instances
         mAuth = FirebaseAuth.getInstance()
         mStore = FirebaseFirestore.getInstance()
 
+        //Inistalising viewSwitcher between exchanging and transferring
         viewSwitcher = bank_viewSwitcher as ViewSwitcher
 
+        //Setting up onClickListeners for Exchange and Transfer menu buttons
         bank_exchangeButton.setOnClickListener{
             bank_exchangeButton.isEnabled = false
             bank_transferButton.isEnabled = true
             displayExchangeCoinz()
-            if (CoinzExchanged < 25) {
-                bank_exchangedTextView.text = String.format(getString(R.string.ExchangeCoinz), 25 - CoinzExchanged)
+            if (coinzExchanged < 25) {
+                bank_exchangedTextView.text = String.format(getString(R.string.ExchangeCoinz), 25 - coinzExchanged)
             } else {
                 viewSwitcher?.showNext()
                 bank_exchangedTextView.text = getString(R.string.NoExchangesLeft)
@@ -72,7 +75,7 @@ class BankActivity : AppCompatActivity() {
             bank_exchangeButton.isEnabled = true
             bank_transferButton.isEnabled = false
             displayTransferCoinz()
-            if (CoinzExchanged < 25) {
+            if (coinzExchanged < 25) {
                 bank_exchangedTextView.text = getString(R.string.SomeExchangesLeft)
             } else {
                 viewSwitcher?.showNext()
@@ -80,6 +83,7 @@ class BankActivity : AppCompatActivity() {
         }
     }
 
+    //Email validation function
     private fun isEmailValid(email: String): Boolean {
         return Pattern.compile(
                 "^(([\\w-]+\\.)+[\\w-]+|([a-zA-Z]|[\\w-]{2,}))@"
@@ -91,9 +95,10 @@ class BankActivity : AppCompatActivity() {
         ).matcher(email).matches()
     }
 
+    //displaying GridView of exchangeable coinz
     private fun displayExchangeCoinz() {
 
-        bank_coinzGridView.adapter = coinzExchangeAdapter(this)
+        bank_coinzGridView.adapter = CoinzExchangeAdapter(this)
 
         if (coinzData.size <= 0) {
             bank_noCoinzCollected.text = noCoinzCollected
@@ -104,9 +109,10 @@ class BankActivity : AppCompatActivity() {
 
     }
 
+    //displaying GridView of transferable coinz
     private fun displayTransferCoinz() {
 
-        bank_coinzGridView.adapter = coinzTransferAdapter(this)
+        bank_coinzGridView.adapter = CoinzTransferAdapter(this)
 
         if (coinzData.size <= 0) {
             bank_noCoinzCollected.text = noCoinzCollected
@@ -116,7 +122,8 @@ class BankActivity : AppCompatActivity() {
         }
     }
 
-    inner class coinzExchangeAdapter(context: Context): BaseAdapter() {
+    //Creating Exchange Adapter for GridView
+    inner class CoinzExchangeAdapter(context: Context): BaseAdapter() {
 
         private val mContext: Context = context
 
@@ -131,23 +138,25 @@ class BankActivity : AppCompatActivity() {
             val layoutInflater = LayoutInflater.from(mContext)
             val coinView = layoutInflater.inflate(R.layout.bank_coinview, parent, false)
 
+            //Setting up TextViews and button onClickListener
             coinView.findViewById<TextView>(R.id.coinCurrency).text = coinzData[position]["Currency"].toString()
             coinView.findViewById<TextView>(R.id.coinValue).text = "%.2f".format(coinzData[position]["Value"].toString().toDouble())
 
-            if (CoinzExchanged >= 25) {
+            if (coinzExchanged >= 25) {
                 coinView.findViewById<Button>(R.id.coinExchange).isEnabled = false
             }
 
             coinView.findViewById<Button>(R.id.coinExchange).setOnClickListener {
                 Log.d(tag, "[onClickListener] Exchange Button clicked")
-                if (CoinzExchanged < 25) {
+                if (coinzExchanged < 25) {
+                    //If possible, exchanging coinz for gold
                     Log.d(tag, "[onClickListener] value: ${coinzData[position]["Value"].toString()} exchRate: ${rates.get(coinzData[position]["Currency"].toString())}")
-                    GOLD += coinzData[position]["Value"].toString().toDouble() * rates.get(coinzData[position]["Currency"].toString()).toString().toDouble()
-                    Log.d(tag, "$GOLD")
+                    gold += coinzData[position]["Value"].toString().toDouble() * rates.get(coinzData[position]["Currency"].toString()).toString().toDouble()
+                    Log.d(tag, "$gold")
                     coinzData.removeAt(position)
-                    Log.d(tag, CollectedID.toString())
+                    Log.d(tag, collectedID.toString())
                     Log.d(tag, coinzData.toString())
-                    CoinzExchanged += 1
+                    coinzExchanged += 1
                     Log.d(tag, "${mAuth.currentUser?.email}")
                     setCoinzData("exchange")
                     displayExchangeCoinz()
@@ -159,8 +168,8 @@ class BankActivity : AppCompatActivity() {
         }
 
     }
-
-    inner class coinzTransferAdapter(context: Context): BaseAdapter() {
+    //Creating Transfer Adapter for GridView
+    inner class CoinzTransferAdapter(context: Context): BaseAdapter() {
 
         private val mContext: Context = context
 
@@ -175,23 +184,25 @@ class BankActivity : AppCompatActivity() {
             val layoutInflater = LayoutInflater.from(mContext)
             val coinView = layoutInflater.inflate(R.layout.bank_coinview, parent, false)
 
+            //Setting up TextViews and button onClickListener
             coinView.findViewById<TextView>(R.id.coinCurrency).text = coinzData[position]["Currency"].toString()
             coinView.findViewById<TextView>(R.id.coinValue).text = "%.2f".format(coinzData[position]["Value"].toString().toDouble())
             coinView.findViewById<Button>(R.id.coinExchange).text =getString(R.string.Transfer)
 
-            if (CoinzExchanged < 25) {
+            if (coinzExchanged < 25) {
                 coinView.findViewById<Button>(R.id.coinExchange).isEnabled = false
             }
 
             coinView.findViewById<Button>(R.id.coinExchange).setOnClickListener {
                 Log.d(tag, "[onClickListener] Transfer Button clicked")
 
+                //if possible, transferring coinz
                 if (!isEmailValid(bank_transferEmail.text.toString())) {
                     Log.d(tag, "[onClickListener] Invalid email")
                     bank_transferEmail.error = getString(R.string.error_invalid_email)
                     bank_transferEmail.requestFocus()
                 } else {
-                    if (CoinzExchanged >= 25) {
+                    if (coinzExchanged >= 25) {
                         Log.d(tag, "[onClickListener] Transfering coinz")
                         val rate = rates.get(coinzData[position]["Currency"].toString()).toString().toDouble()
                         val value = coinzData[position]["Value"].toString().toDouble()
@@ -205,54 +216,54 @@ class BankActivity : AppCompatActivity() {
         }
     }
 
+    //retrieving and displaying some basic information, more info will be displayed after data from Firestore gets retrieved
     public override fun onStart() {
         super.onStart()
         currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
         getCoinzData()
         coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
-        GOLD = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE).getFloat("GOLD", 0.0.toFloat()).toDouble()
-        //Log.d(tag, coinzMapData)
+        gold = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE).getFloat("GOLD", 0.0.toFloat()).toDouble()
         rates = JSONObject(coinzMapData).get("rates") as JSONObject
         bank_QUIDvalue.text = String.format(getString(R.string.RatesValue), rates.get("QUID"))
         bank_PENYvalue.text = String.format(getString(R.string.RatesValue), rates.get("PENY"))
         bank_DOLRvalue.text = String.format(getString(R.string.RatesValue), rates.get("DOLR"))
         bank_SHILvalue.text = String.format(getString(R.string.RatesValue), rates.get("SHIL"))
-        bank_GOLDvalue.text = String.format(getString(R.string.GoldAmount), GOLD)
-        //Log.d(tag, rates.get("SHIL").toString())
+        bank_GOLDvalue.text = String.format(getString(R.string.GoldAmount), gold)
     }
 
+    //retrieving data from Firestore and displaying it
     private fun getCoinzData() {
         mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .get()
                 .addOnSuccessListener {
 
-                    GOLD = it.get("GOLD").toString().toDouble()
+                    gold = it.get("GOLD").toString().toDouble()
                     @Suppress("UNCHECKED_CAST")
                     coinzData = it.get("CollectedCoinz") as MutableList<HashMap<String, Any>>
                     @Suppress("UNCHECKED_CAST")
-                    CollectedID = it.get("CollectedID") as MutableList<String>
-                    LastDate = it.get("LastDate") as String
-                    LastTimestamp = it.get("LastTimestamp") as Long
-                    Username = it.get("Username") as String
-                    CoinzReceived = it.get("CoinzReceived").toString().toInt()
-                    CoinzExchanged = it.get("CoinzExchanged").toString().toInt()
+                    collectedID = it.get("CollectedID") as MutableList<String>
+                    lastDate = it.get("LastDate") as String
+                    lastTimestamp = it.get("LastTimestamp") as Long
+                    username = it.get("Username") as String
+                    coinzReceived = it.get("CoinzReceived").toString().toInt()
+                    coinzExchanged = it.get("CoinzExchanged").toString().toInt()
                     @Suppress("UNCHECKED_CAST")
-                    Quests = it.get("Quests") as MutableList<HashMap<String, Any>>
-                    Rerolled = it.get("Rerolled") as Boolean
+                    quests = it.get("Quests") as MutableList<HashMap<String, Any>>
+                    rerolled = it.get("Rerolled") as Boolean
                     @Suppress("UNCHECKED_CAST")
-                    TransferHistory = it.get("TransferHistory") as MutableList<HashMap<String, Any>>
-                    AllCollectedToday = it.get("AllCollectedToday") as Boolean
+                    transferHistory = it.get("TransferHistory") as MutableList<HashMap<String, Any>>
+                    allCollectedToday = it.get("AllCollectedToday") as Boolean
                     @Suppress("UNCHECKED_CAST")
-                    Wager = it.get("Wager") as HashMap<String, Any>
-                    WageredToday = it.get("WageredToday") as Boolean
+                    wager = it.get("Wager") as HashMap<String, Any>
+                    wageredToday = it.get("WageredToday") as Boolean
 
 
-                    Log.d(tag, "[getCoinzData] ${Timestamp.now().seconds}, $LastTimestamp")
+                    Log.d(tag, "[getCoinzData] ${Timestamp.now().seconds}, $lastTimestamp")
 
-                    bank_GOLDvalue.text = "%.1f".format(GOLD)
+                    bank_GOLDvalue.text = "%.1f".format(gold)
 
-                    if (CoinzExchanged < 25) {
-                        bank_exchangedTextView.text = String.format(getString(R.string.ExchangeCoinz), 25 - CoinzExchanged)
+                    if (coinzExchanged < 25) {
+                        bank_exchangedTextView.text = String.format(getString(R.string.ExchangeCoinz), 25 - coinzExchanged)
                     } else {
                         bank_exchangedTextView.text = getString(R.string.NoExchangesLeft)
                     }
@@ -270,25 +281,27 @@ class BankActivity : AppCompatActivity() {
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[getCoinzData] ${it.message.toString()}")
+                    Toast.makeText(this, getString(R.string.DownloadDataFail), Toast.LENGTH_LONG).show()
                 }
     }
 
+    //updating logged in user's data and displaying it
     private fun setCoinzData(Operation: String) {
         val userData = HashMap<String, Any>()
-        userData["GOLD"] = GOLD
-        userData["CollectedID"] = CollectedID
+        userData["GOLD"] = gold
+        userData["CollectedID"] = collectedID
         userData["CollectedCoinz"] = coinzData
         userData["LastDate"] = currentDate
         userData["LastTimestamp"] = Timestamp.now().seconds
-        userData["CoinzExchanged"] = CoinzExchanged
-        userData["Username"] = Username
-        userData["CoinzReceived"] = CoinzReceived
-        userData["Quests"] = Quests
-        userData["Rerolled"] = Rerolled
-        userData["TransferHistory"] = TransferHistory
-        userData["AllCollectedToday"] = AllCollectedToday
-        userData["Wager"] = Wager
-        userData["WageredToday"] = WageredToday
+        userData["CoinzExchanged"] = coinzExchanged
+        userData["Username"] = username
+        userData["CoinzReceived"] = coinzReceived
+        userData["Quests"] = quests
+        userData["Rerolled"] = rerolled
+        userData["TransferHistory"] = transferHistory
+        userData["AllCollectedToday"] = allCollectedToday
+        userData["Wager"] = wager
+        userData["WageredToday"] = wageredToday
 
         mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .set(userData)
@@ -300,19 +313,21 @@ class BankActivity : AppCompatActivity() {
                         displayTransferCoinz()
                     }
 
-                    bank_GOLDvalue.text = "%.1f".format(GOLD)
-                    if (CoinzExchanged < 25) {
-                        bank_exchangedTextView.text = exchangeCoinzPrefix + (25 - CoinzExchanged).toString() + exchangeCoinzSufix
+                    bank_GOLDvalue.text = "%.1f".format(gold)
+                    if (coinzExchanged < 25) {
+                        bank_exchangedTextView.text = exchangeCoinzPrefix + (25 - coinzExchanged).toString() + exchangeCoinzSufix
                     } else {
                         bank_exchangedTextView.text = getString(R.string.NoExchangesLeft)
                     }
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[setCoinzData] ${it.message.toString()}")
+                    Toast.makeText(this, getString(R.string.UpdateDataFail), Toast.LENGTH_LONG).show()
                     getCoinzData()
                 }
     }
 
+    //transferring coinz to another player
     private fun transferCoinz(targetEmail: String, coinzTransferRate: Double, coinzValue: Double) {
         if (targetEmail == mAuth.currentUser?.email) {
             bank_transferEmail.error = getString(R.string.TransferSameEmail)
@@ -320,6 +335,7 @@ class BankActivity : AppCompatActivity() {
             return
         }
 
+        //checking if user with given email address exists
         mAuth.fetchSignInMethodsForEmail(targetEmail)
                 .addOnSuccessListener {
                     Log.d(tag, "[transferCoinz] ${it.signInMethods.toString()}")
@@ -329,28 +345,29 @@ class BankActivity : AppCompatActivity() {
                         getCoinzData()
                         return@addOnSuccessListener
                     } else {
+                        //if that user exists, transfer gold to his account, create a mention in his transfer history and update logged in user's data
                         mStore.collection("Coinz").document(targetEmail)
                                 .get()
                                 .addOnSuccessListener { document ->
                                     @Suppress("UNCHECKED_CAST")
-                                    val TargetTransferHistory = document.get("TransferHistory") as MutableList<HashMap<String, Any>>
-                                    var TargetGOLD = document.get("GOLD").toString().toDouble()
-                                    var TargetCoinzReceived = document.get("CoinzReceived").toString().toInt()
+                                    val targetTransferHistory = document.get("TransferHistory") as MutableList<HashMap<String, Any>>
+                                    var targetGOLD = document.get("GOLD").toString().toDouble()
+                                    var targetCoinzReceived = document.get("CoinzReceived").toString().toInt()
 
-                                    if (TargetCoinzReceived >= 25) {
+                                    if (targetCoinzReceived >= 25) {
                                         Log.d(tag, "[transferCoinz] Traget player already received 25 coinz today.")
                                         getCoinzData()
                                     } else {
-                                        TargetGOLD += coinzTransferRate*coinzValue
-                                        TargetCoinzReceived += 1
-                                        val TargetTransferData = HashMap<String, Any>()
-                                        TargetTransferData["From"] = Username
-                                        TargetTransferData["Amount"] = coinzTransferRate*coinzValue
-                                        TargetTransferHistory.add(TargetTransferData)
+                                        targetGOLD += coinzTransferRate*coinzValue
+                                        targetCoinzReceived += 1
+                                        val targetTransferData = HashMap<String, Any>()
+                                        targetTransferData["From"] = username
+                                        targetTransferData["Amount"] = coinzTransferRate*coinzValue
+                                        targetTransferHistory.add(targetTransferData)
                                         mStore.collection("Coinz").document(targetEmail)
-                                                .update("GOLD", TargetGOLD,
-                                                        "CoinzReceived", TargetCoinzReceived,
-                                                        "TransferHistory", TargetTransferHistory)
+                                                .update("GOLD", targetGOLD,
+                                                        "CoinzReceived", targetCoinzReceived,
+                                                        "TransferHistory", targetTransferHistory)
                                                 .addOnSuccessListener {
                                                     Log.d(tag, "[transferCoinz] Coin successfully transfered")
                                                     setCoinzData("transfer")
@@ -358,16 +375,19 @@ class BankActivity : AppCompatActivity() {
                                                 }
                                                 .addOnFailureListener { e ->
                                                     Log.d(tag, "[transferCoinz] ${e.message.toString()}")
+                                                    Toast.makeText(this, getString(R.string.FaieldTransferGOLD), Toast.LENGTH_LONG).show()
                                                 }
                                     }
                                 }
                                 .addOnFailureListener { e ->
                                     Log.d(tag, "[transferCoinz] ${e.message.toString()}")
+                                    Toast.makeText(this, getString(R.string.FaieldTransferGOLD), Toast.LENGTH_LONG).show()
                                 }
                     }
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[transferCoinz] ${it.message.toString()}")
+                    Toast.makeText(this, getString(R.string.FaieldTransferGOLD), Toast.LENGTH_LONG).show()
                 }
     }
 

@@ -13,8 +13,6 @@ import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_ranking.*
-import org.w3c.dom.Text
-import java.lang.reflect.Type
 
 class RankingActivity : AppCompatActivity() {
 
@@ -29,25 +27,31 @@ class RankingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ranking)
 
+        //Initialising Firebase Instances
         mAuth = FirebaseAuth.getInstance()
         mStore = FirebaseFirestore.getInstance()
 
+        //Adding first rows of ListView to the userData
         val userDataDescription = HashMap<String, Any>()
         userDataDescription["Username"] = "Username"
         userDataDescription["Gold"] = "GOLD"
         userData.add(userDataDescription)
 
-        //displayRanking()
-
-
-
     }
 
-
+    //function that displays ListView of players
     private fun displayRanking() {
-        ranking_listView.adapter = RankingAdapter(this)
+
+        if (userData.size <= 0) {
+            ranking_noPlayers.text = getString(R.string.RankingNoPlayers)
+            ranking_noPlayers.visibility = View.VISIBLE
+        } else {
+            ranking_listView.adapter = RankingAdapter(this)
+            ranking_noPlayers.visibility = View.GONE
+        }
     }
 
+    //Adapter for ListView of players
     inner class RankingAdapter(context: Context): BaseAdapter(){
 
         private val mContext = context
@@ -63,6 +67,7 @@ class RankingActivity : AppCompatActivity() {
             val layoutInflater = LayoutInflater.from(mContext)
             val rankingView = layoutInflater.inflate(R.layout.ranking_rankview, parent, false)
 
+            //just displaying information on the screen
             if (position != 0) {
                 rankingView.findViewById<TextView>(R.id.ranking_username).text = "%s. %s".format(position.toString(), userData[position]["Username"].toString())
                 rankingView.findViewById<TextView>(R.id.ranking_gold).text = "%.1f".format(userData[position]["Gold"].toString().toDouble())
@@ -86,7 +91,7 @@ class RankingActivity : AppCompatActivity() {
 
     public override fun onStart() {
         super.onStart()
-
+        //retrieving players data from the Firestore
         mStore.collection("Coinz")
                 .get()
                 .addOnSuccessListener { data ->
@@ -100,6 +105,10 @@ class RankingActivity : AppCompatActivity() {
                     }
                     userDataTempList.sortByDescending{it["Gold"].toString().toDouble()}
                     userData.addAll(userDataTempList)
+                    displayRanking()
+                }
+                .addOnFailureListener {
+                    Log.d(tag, "[onStart] ${it.message.toString()}")
                     displayRanking()
                 }
     }
