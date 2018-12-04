@@ -26,8 +26,20 @@ import android.Manifest.permission.READ_CONTACTS
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.Task
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.android.synthetic.main.activity_sign_up.*
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 import java.util.regex.Pattern
 
@@ -39,11 +51,16 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
      * Keep track of the login task to ensure we can cancel it if requested.
      */
 
-    private val tag = "Login Activity"
+    private val tag = "LoginActivity"
 
     private var mAuthTask: UserLoginTask? = null
 
-    private var mAuth: FirebaseAuth? = null
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mStore: FirebaseFirestore
+
+    private lateinit var mGoogleSignInClient: GoogleSignInClient
+    private lateinit var gso: GoogleSignInOptions
+    private val RC_SIGN_IN: Int = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +78,18 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         go_back_to_signup.setOnClickListener { finish() }
 
         mAuth = FirebaseAuth.getInstance()
+        mStore = FirebaseFirestore.getInstance()
+
         email_sign_in_button.setOnClickListener { attemptLogin() }
+
+        gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
+
+
+        google_sign_in_button.setOnClickListener { googleSignIn() }
     }
 
     private fun populateAutoComplete() {
@@ -181,6 +209,102 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                     }
 
         }
+    }
+
+    private fun googleSignIn() {
+        val signInIntent: Intent = mGoogleSignInClient.signInIntent
+        startActivityForResult(signInIntent, RC_SIGN_IN)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == RC_SIGN_IN) {
+            val task: Task<GoogleSignInAccount> = GoogleSignIn.getSignedInAccountFromIntent(data)
+            handleResult(task)
+        }
+    }
+
+    private fun handleResult(completedTask: Task<GoogleSignInAccount>) {
+        try {
+            val account = completedTask.getResult(ApiException::class.java)
+            Log.d(tag, "[handleResult] Name: ${account?.displayName}, Email: ${account?.email}")
+            showProgress(true)
+            firebaseAuthWithGoogle(account!!)
+        }catch (e: ApiException) {
+            Log.d(tag, "[handleResult] ${e.message.toString()}")
+        }
+    }
+
+    private fun firebaseAuthWithGoogle(account: GoogleSignInAccount) {
+        Log.d(tag, "[firebaseAuthWithGoogle] Going to authenticate")
+        val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+        Log.d(tag, "[firebaseAuthWithGoogle] Going to authenticate2")
+        mAuth.signInWithCredential(credential)
+                .addOnSuccessListener {
+                    Log.d(tag, "[firebaseAuthWithGoogle] signInWithCredential:success")
+                    Log.d(tag, mAuth.currentUser?.email.toString())
+
+                    mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
+                            .get()
+                            .addOnSuccessListener { document ->
+                                if(document.exists()) {
+                                    showProgress(false)
+                                    startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                                } else {
+                                    val userData = createUserDocument(mAuth.currentUser?.displayName!!)
+
+                                    mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
+                                            .set(userData)
+                                            .addOnSuccessListener {
+                                                Log.d(tag, "[addData] Successfully added data to Firestore")
+                                                showProgress(false)
+                                                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                                            }
+                                            .addOnFailureListener { e ->
+                                                showProgress(false)
+                                                Log.d(tag, "[addData] ${e.message.toString()}")
+                                            }
+                                }
+                            }
+                            .addOnFailureListener {
+                                Log.d(tag, "[firebaseAuthWithGoogle] Unable to retrieve data")
+                            }
+                }
+                .addOnFailureListener {
+                    showProgress(false)
+                    Log.w(tag, "[firebaseAuthWithGoogle]signInWithCredential:failure, ${it.message.toString()}")
+                }
+    }
+
+    private fun createUserDocument(username: String): HashMap<String, Any> {
+
+        val userData = HashMap<String, Any>()
+        userData["GOLD"] = 0
+        userData["CollectedCoinz"] = listOf<HashMap<String, Any>>()
+        userData["CollectedID"] = listOf<String>()
+        userData["LastDate"] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
+        userData["LastTimestamp"] = Timestamp.now().seconds
+        userData["CoinzExchanged"] = 0
+        userData["CoinzReceived"] = 0
+        userData["Username"] = username
+        userData["Rerolled"] = false
+        userData["TransferHistory"] = listOf<HashMap<String, Any>>()
+        userData["AllCollectedToday"] = false
+        val Amount = (3..6).shuffled().first()
+        val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
+        val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
+        val Quests: MutableList<HashMap<String, Any>> = arrayListOf()
+        val Quest = HashMap<String, Any>()
+        Quest["Amount"] = Amount
+        Quest["Currency"] = Currency
+        Quest["Reward"] = Reward
+        Quest["CompletionStage"] = 0
+        Quests.add(Quest)
+        userData["Quests"] = Quests
+        userData["Wager"] = HashMap<String, Any>()
+        userData["WageredToday"] = false
+
+        return userData
     }
 
     private fun isEmailValid(email: String): Boolean {
@@ -328,14 +452,14 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
     public override fun onStart() {
         super.onStart()
-        if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+        if (mAuth.currentUser?.uid != null) {
             startActivity(Intent(this, MainActivity::class.java))
         }
     }
 
     public override fun onResume() {
         super.onResume()
-        if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+        if (mAuth.currentUser?.uid != null) {
             startActivity(Intent(this, MainActivity::class.java))
         }
     }

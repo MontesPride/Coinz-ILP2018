@@ -22,6 +22,9 @@ class BankActivity : AppCompatActivity() {
     private val tag = "BankActivity"
     private var preferencesFile = "MyPrefsFile"
 
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mStore: FirebaseFirestore
+
     private var coinzMapData: String = ""
     private var coinzData: MutableList<HashMap<String, Any>> = arrayListOf()
     private var GOLD: Double = 0.0
@@ -35,6 +38,9 @@ class BankActivity : AppCompatActivity() {
     private var Quests: MutableList<HashMap<String, Any>> = arrayListOf()
     private var Rerolled = false
     private var TransferHistory: MutableList<HashMap<String, Any>> = arrayListOf()
+    private var AllCollectedToday = false
+    private var Wager = HashMap<String, Any>()
+    private var WageredToday = false
     private var rates = JSONObject()
     private var exchangeCoinzPrefix = "You can exchange "
     private var exchangeCoinzSufix = " Coinz"
@@ -44,6 +50,9 @@ class BankActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bank)
+
+        mAuth = FirebaseAuth.getInstance()
+        mStore = FirebaseFirestore.getInstance()
 
         viewSwitcher = bank_viewSwitcher as ViewSwitcher
 
@@ -105,7 +114,6 @@ class BankActivity : AppCompatActivity() {
         } else {
             bank_noCoinzCollected.visibility = View.GONE
         }
-
     }
 
     inner class coinzExchangeAdapter(context: Context): BaseAdapter() {
@@ -119,24 +127,6 @@ class BankActivity : AppCompatActivity() {
         override fun getItemId(position: Int): Long = 0L
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            /*val imageView: ImageView
-            if (convertView == null) {
-                // if it's not recycled, initialize some attributes
-                imageView = ImageView(mContext)
-                imageView.layoutParams = ViewGroup.LayoutParams(85, 85)
-                imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-                imageView.setPadding(8, 8, 8, 8)
-            } else {
-                imageView = convertView as ImageView
-            }
-
-            imageView.setImageResource(mThumbIds[position])
-            return imageView*/
-
-            /*val textView = TextView(mContext)
-            textView.text = "%.2f".format(coinzData[position]["Value"].toString().toDouble())
-            textView.gravity = 11
-            return textView*/
 
             val layoutInflater = LayoutInflater.from(mContext)
             val coinView = layoutInflater.inflate(R.layout.bank_coinview, parent, false)
@@ -158,7 +148,7 @@ class BankActivity : AppCompatActivity() {
                     Log.d(tag, CollectedID.toString())
                     Log.d(tag, coinzData.toString())
                     CoinzExchanged += 1
-                    Log.d(tag, "${FirebaseAuth.getInstance().currentUser?.email}")
+                    Log.d(tag, "${mAuth.currentUser?.email}")
                     setCoinzData("exchange")
                     displayExchangeCoinz()
                 }
@@ -181,24 +171,6 @@ class BankActivity : AppCompatActivity() {
         override fun getItemId(position: Int): Long = 0L
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            /*val imageView: ImageView
-            if (convertView == null) {
-                // if it's not recycled, initialize some attributes
-                imageView = ImageView(mContext)
-                imageView.layoutParams = ViewGroup.LayoutParams(85, 85)
-                imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-                imageView.setPadding(8, 8, 8, 8)
-            } else {
-                imageView = convertView as ImageView
-            }
-
-            imageView.setImageResource(mThumbIds[position])
-            return imageView*/
-
-            /*val textView = TextView(mContext)
-            textView.text = "%.2f".format(coinzData[position]["Value"].toString().toDouble())
-            textView.gravity = 11
-            return textView*/
 
             val layoutInflater = LayoutInflater.from(mContext)
             val coinView = layoutInflater.inflate(R.layout.bank_coinview, parent, false)
@@ -221,15 +193,6 @@ class BankActivity : AppCompatActivity() {
                 } else {
                     if (CoinzExchanged >= 25) {
                         Log.d(tag, "[onClickListener] Transfering coinz")
-                        /*GOLD += coinzData[position]["Value"].toString().toDouble() * rates.get(coinzData[position]["Currency"].toString()).toString().toDouble()
-                        Log.d(tag, "$GOLD")
-                        coinzData.removeAt(position)
-                        Log.d(tag, CollectedID.toString())
-                        Log.d(tag, coinzData.toString())
-                        CoinzExchanged += 1
-                        Log.d(tag, "${FirebaseAuth.getInstance().currentUser?.email}")*/
-                        //setCoinzData()
-
                         val rate = rates.get(coinzData[position]["Currency"].toString()).toString().toDouble()
                         val value = coinzData[position]["Value"].toString().toDouble()
                         coinzData.removeAt(position)
@@ -259,41 +222,37 @@ class BankActivity : AppCompatActivity() {
     }
 
     private fun getCoinzData() {
-        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+        mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .get()
                 .addOnSuccessListener {
 
                     GOLD = it.get("GOLD").toString().toDouble()
                     @Suppress("UNCHECKED_CAST")
                     coinzData = it.get("CollectedCoinz") as MutableList<HashMap<String, Any>>
+                    @Suppress("UNCHECKED_CAST")
+                    CollectedID = it.get("CollectedID") as MutableList<String>
                     LastDate = it.get("LastDate") as String
                     LastTimestamp = it.get("LastTimestamp") as Long
                     Username = it.get("Username") as String
                     CoinzReceived = it.get("CoinzReceived").toString().toInt()
+                    CoinzExchanged = it.get("CoinzExchanged").toString().toInt()
                     @Suppress("UNCHECKED_CAST")
                     Quests = it.get("Quests") as MutableList<HashMap<String, Any>>
                     Rerolled = it.get("Rerolled") as Boolean
                     @Suppress("UNCHECKED_CAST")
                     TransferHistory = it.get("TransferHistory") as MutableList<HashMap<String, Any>>
+                    AllCollectedToday = it.get("AllCollectedToday") as Boolean
+                    @Suppress("UNCHECKED_CAST")
+                    Wager = it.get("Wager") as HashMap<String, Any>
+                    WageredToday = it.get("WageredToday") as Boolean
+
+
                     Log.d(tag, "[getCoinzData] ${Timestamp.now().seconds}, $LastTimestamp")
-                    if (LastDate != currentDate && Timestamp.now().seconds < LastTimestamp) {
-                        CollectedID  = arrayListOf()
-                    } else {
-                        @Suppress("UNCHECKED_CAST")
-                        CollectedID = it.get("CollectedID") as MutableList<String>
-                    }
-
-                    if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
-                        CoinzExchanged = 0
-                    } else {
-                        CoinzExchanged = it.get("CoinzExchanged").toString().toInt()
-                    }
-
-                    //CoinzDataDowloaded = true
 
                     bank_GOLDvalue.text = "%.1f".format(GOLD)
+
                     if (CoinzExchanged < 25) {
-                        bank_exchangedTextView.text = exchangeCoinzPrefix + (25 - CoinzExchanged).toString() + exchangeCoinzSufix
+                        bank_exchangedTextView.text = String.format(getString(R.string.ExchangeCoinz), 25 - CoinzExchanged)
                     } else {
                         bank_exchangedTextView.text = getString(R.string.NoExchangesLeft)
                     }
@@ -327,7 +286,11 @@ class BankActivity : AppCompatActivity() {
         userData["Quests"] = Quests
         userData["Rerolled"] = Rerolled
         userData["TransferHistory"] = TransferHistory
-        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+        userData["AllCollectedToday"] = AllCollectedToday
+        userData["Wager"] = Wager
+        userData["WageredToday"] = WageredToday
+
+        mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .set(userData)
                 .addOnSuccessListener {
                     Log.d(tag, "[setCoinzData] Successfully added to Firestore")
@@ -351,13 +314,13 @@ class BankActivity : AppCompatActivity() {
     }
 
     private fun transferCoinz(targetEmail: String, coinzTransferRate: Double, coinzValue: Double) {
-        if (targetEmail == FirebaseAuth.getInstance().currentUser?.email) {
+        if (targetEmail == mAuth.currentUser?.email) {
             bank_transferEmail.error = getString(R.string.TransferSameEmail)
             bank_transferEmail.requestFocus()
             return
         }
 
-        FirebaseAuth.getInstance().fetchSignInMethodsForEmail(targetEmail)
+        mAuth.fetchSignInMethodsForEmail(targetEmail)
                 .addOnSuccessListener {
                     Log.d(tag, "[transferCoinz] ${it.signInMethods.toString()}")
                     if (it.signInMethods!!.size <= 0) {
@@ -366,7 +329,7 @@ class BankActivity : AppCompatActivity() {
                         getCoinzData()
                         return@addOnSuccessListener
                     } else {
-                        FirebaseFirestore.getInstance().collection("Coinz").document(targetEmail)
+                        mStore.collection("Coinz").document(targetEmail)
                                 .get()
                                 .addOnSuccessListener { document ->
                                     @Suppress("UNCHECKED_CAST")
@@ -384,7 +347,7 @@ class BankActivity : AppCompatActivity() {
                                         TargetTransferData["From"] = Username
                                         TargetTransferData["Amount"] = coinzTransferRate*coinzValue
                                         TargetTransferHistory.add(TargetTransferData)
-                                        FirebaseFirestore.getInstance().collection("Coinz").document(targetEmail)
+                                        mStore.collection("Coinz").document(targetEmail)
                                                 .update("GOLD", TargetGOLD,
                                                         "CoinzReceived", TargetCoinzReceived,
                                                         "TransferHistory", TargetTransferHistory)

@@ -56,7 +56,8 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
     private var mAuthTask: UserLoginTask? = null
 
-    private var mAuth: FirebaseAuth? = null
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mStore: FirebaseFirestore
 
     private lateinit var mGoogleSignInClient: GoogleSignInClient
     private lateinit var gso: GoogleSignInOptions
@@ -81,6 +82,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         }
 
         mAuth = FirebaseAuth.getInstance()
+        mStore = FirebaseFirestore.getInstance()
 
         email_sign_up_button.setOnClickListener { attemptLogin() }
 
@@ -211,11 +213,11 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                         } else {
                             Log.d(tag, "Successfully created user with uid: ${it.result?.user?.uid}")
 
-                            val user = FirebaseAuth.getInstance().currentUser
+                            val user = mAuth.currentUser
 
-                            val userData = createUserDocument(usernameStr, emailStr)
+                            val userData = createUserDocument(usernameStr)
 
-                            FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+                            mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                                     .set(userData)
                                     .addOnSuccessListener {
                                         Log.d(tag, "[addData] Successfully added data to Firestore")
@@ -274,21 +276,21 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         Log.d(tag, "[firebaseAuthWithGoogle] Going to authenticate")
         val credential = GoogleAuthProvider.getCredential(account.idToken, null)
         Log.d(tag, "[firebaseAuthWithGoogle] Going to authenticate2")
-        FirebaseAuth.getInstance().signInWithCredential(credential)
+        mAuth.signInWithCredential(credential)
                 .addOnSuccessListener {
                     Log.d(tag, "[firebaseAuthWithGoogle] signInWithCredential:success")
-                    Log.d(tag, FirebaseAuth.getInstance().currentUser?.email.toString())
+                    Log.d(tag, mAuth.currentUser?.email.toString())
 
-                    FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+                    mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                             .get()
                             .addOnSuccessListener { document ->
                                 if(document.exists()) {
                                     showProgress(false)
                                     startActivity(Intent(this@SignUpActivity, MainActivity::class.java))
                                 } else {
-                                    val userData = createUserDocument(FirebaseAuth.getInstance().currentUser?.displayName!!, FirebaseAuth.getInstance().currentUser?.email!!)
+                                    val userData = createUserDocument(mAuth.currentUser?.displayName!!)
 
-                                    FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+                                    mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                                             .set(userData)
                                             .addOnSuccessListener {
                                                 Log.d(tag, "[addData] Successfully added data to Firestore")
@@ -311,7 +313,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                 }
     }
 
-    private fun createUserDocument(username: String, email: String): HashMap<String, Any> {
+    private fun createUserDocument(username: String): HashMap<String, Any> {
 
         val userData = HashMap<String, Any>()
         userData["GOLD"] = 0
@@ -324,6 +326,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         userData["Username"] = username
         userData["Rerolled"] = false
         userData["TransferHistory"] = listOf<HashMap<String, Any>>()
+        userData["AllCollectedToday"] = false
         val Amount = (3..6).shuffled().first()
         val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
         val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
@@ -335,6 +338,8 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         Quest["CompletionStage"] = 0
         Quests.add(Quest)
         userData["Quests"] = Quests
+        userData["Wager"] = HashMap<String, Any>()
+        userData["WageredToday"] = false
 
         return userData
     }
@@ -484,7 +489,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
     public override fun onStart() {
         super.onStart()
-        if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+        if (mAuth.currentUser?.uid != null) {
             startActivity(Intent(this, MainActivity::class.java))
         }
         //updateUI(currentUser)
@@ -492,7 +497,7 @@ class SignUpActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
     public override fun onResume() {
         super.onResume()
-        if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+        if (mAuth.currentUser?.uid != null) {
             startActivity(Intent(this, MainActivity::class.java))
         }
     }

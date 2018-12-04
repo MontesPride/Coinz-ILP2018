@@ -4,16 +4,13 @@ package com.example.szymon.coinz
 import android.content.Context
 import android.content.Intent
 import android.location.Location
-import android.os.AsyncTask
-import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Build
-import android.os.Vibrator
+import android.os.*
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import com.google.firebase.Timestamp
 import com.google.firebase.Timestamp.now
 import com.google.firebase.auth.FirebaseAuth
@@ -64,6 +61,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     private val tag = "MainActivity"
 
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mStore: FirebaseFirestore
+
     private var downloadError = false
     private var downloadDate = "" // YYYY/MM/DD
     private var currentDate = ""
@@ -103,23 +103,27 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private var Quests: MutableList<HashMap<String, Any>> = arrayListOf()
     private var Rerolled = false
     private var TransferHistory: MutableList<HashMap<String, Any>> = arrayListOf()
+    private var AllCollectedToday = false
+    private var WageredToday = false
+    private var Wager = HashMap<String, Any>()
+    private lateinit var WagerTimer: CountDownTimer
     private var invalidDateAndTimeSnackbar: Snackbar? = null
     private var vibratorService: Vibrator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        //setSupportActionBar(toolbar)
 
-
+        mAuth = FirebaseAuth.getInstance()
+        mStore = FirebaseFirestore.getInstance()
 
         //fab.setOnClickListener { view ->
         //    Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
         //           .setAction("Action", null).show()
         //}
 
-        fab.setOnClickListener {view ->
-            Snackbar.make(view, "${FirebaseAuth.getInstance().currentUser?.displayName}", Snackbar.LENGTH_LONG).show()
+        /*fab.setOnClickListener {view ->
+            Snackbar.make(view, "${mAuth.currentUser?.displayName}", Snackbar.LENGTH_LONG).show()
 
             val Quest = HashMap<String, Any>()
 
@@ -147,7 +151,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Quest.put("CompletionStage", 3)
             Quests.add(Quest)
 
-        }//bottom middle
+        }*/ //bottom middle
+
+        fab.setOnClickListener {
+            startActivity(Intent(this, TransferHistoryActivity::class.java))
+        }
 
         /*goToLogin.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
@@ -166,9 +174,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         }//bottom right
 
         signOut.setOnClickListener {
-            FirebaseAuth.getInstance().signOut()
+            mAuth.signOut()
             finish()
-            //Snackbar.make(it, "Signed out, uid: ${FirebaseAuth.getInstance().currentUser?.uid}", Snackbar.LENGTH_LONG).show()
+            //Snackbar.make(it, "Signed out, uid: ${mAuth.currentUser?.uid}", Snackbar.LENGTH_LONG).show()
         }//top left
 
         /*displayMarkersButton.setOnClickListener {
@@ -179,31 +187,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             startActivity(Intent(this, TransferHistoryActivity::class.java))
         } // top middle
 
-        showCoinz.setOnClickListener {
+        /*showCoinz.setOnClickListener {
             Snackbar.make(it, "G:$GOLD", Snackbar.LENGTH_LONG).show()
             Log.d(tag, "[showCoinz] Size of CollectedID: ${CollectedID.size}")
             for (ID in CollectedID) {
                 Log.d(tag, "[showCoinz] $ID")
             }
             //Log.d(tag, markers.toString())
+        }   //center right*/
+
+        showCoinz.setOnClickListener {
+            startActivity(Intent(this, RaceActivity::class.java))
         }   //center right
 
         addData.setOnClickListener {
-            /*val userData = HashMap<String, Any>()
-            userData.put("QUID", 0)
-            userData.put("PENY", 2)
-            userData.put("DOLR", 0)
-            userData.put("SHIL", 5)
-            userData.put("GOLD", 0)
-            userData.put("COLLECTED", Arrays.asList(""))
-            FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.uid!!)
-                    .set(userData)
-                    .addOnSuccessListener {
-                        Log.d(tag, "[addData] Successfully added data to Firestore")
-                    }
-                    .addOnFailureListener {
-                        Log.d(tag, "[addData] ${it.message.toString()}")
-                    }*/
             setCoinzData()
         }//top right
 
@@ -215,9 +212,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             startActivity(Intent(this, BankActivity::class.java))
         } //center left
 
-        vibratorService = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
-        //getCoinzData()
+
+        vibratorService = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
         invalidDateAndTimeSnackbar = Snackbar.make(mapboxMapView, getString(R.string.error_invalid_date_and_time), Snackbar.LENGTH_INDEFINITE)
 
@@ -319,7 +316,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             val markerSymbol = featureProperties["marker-symbol"].asString
             var icon: Icon
             when (markerColor) {
-                //"#ff0000" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.mapbox_marker_icon_default)
                 "#ff0000" -> when (markerSymbol) {
                     "0" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_0)
                     "1" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_1)
@@ -333,7 +329,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     "9" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_9)
                     else -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker)
                 }
-                //"#008000" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker)
                 "#008000" -> when (markerSymbol) {
                     "0" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_0)
                     "1" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_1)
@@ -347,7 +342,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     "9" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker_9)
                     else -> icon = IconFactory.getInstance(this).fromResource(R.drawable.green_marker)
                 }
-                //"#0000ff" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker)
                 "#0000ff" -> when (markerSymbol) {
                     "0" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_0)
                     "1" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_1)
@@ -361,7 +355,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     "9" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker_9)
                     else -> icon = IconFactory.getInstance(this).fromResource(R.drawable.blue_marker)
                 }
-                //"#ffdf00" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker)
                 "#ffdf00" -> when (markerSymbol) {
                     "0" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_0)
                     "1" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.yellow_marker_1)
@@ -388,21 +381,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     }
 
     private fun getCoinzData() {
-        if (FirebaseAuth.getInstance().currentUser?.uid == null) {
+        if (mAuth.currentUser?.uid == null) {
             finish()
         }
-
-        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+        mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .get()
                 .addOnSuccessListener {
                     Log.d(tag, "[getData] Successfully retrieved data from Firestore")
-                    //Log.d(tag, it.toString())
+                    Log.d(tag, "uid: ${mAuth.currentUser?.email}")
 
-                    /*QUID = it.get("QUID").toString().toDouble()
-                    PENY = it.get("PENY").toString().toDouble()
-                    DOLR = it.get("DOLR").toString().toDouble()
-                    SHIL = it.get("SHIL").toString().toDouble()*/
-                    Log.d(tag, "uid: ${FirebaseAuth.getInstance().currentUser?.email}")
                     GOLD = it.get("GOLD").toString().toDouble()
                     @Suppress("UNCHECKED_CAST")
                     CollectedCoinz = it.get("CollectedCoinz") as MutableList<HashMap<String, Any>>
@@ -414,14 +401,38 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     Rerolled = it.get("Rerolled") as Boolean
                     @Suppress("UNCHECKED_CAST")
                     TransferHistory = it.get("TransferHistory") as MutableList<HashMap<String, Any>>
+                    AllCollectedToday = it.get("AllCollectedToday") as Boolean
+                    @Suppress("UNCHECKED_CAST")
+                    Wager = it.get("Wager") as HashMap<String, Any>
+                    WageredToday = it.get("WageredToday") as Boolean
 
                     Log.d(tag, "[getCoinzData] $currentDate, ${Timestamp.now().seconds}, $LastTimestamp")
+
+                    if (!Wager.isEmpty()) {
+                        if (Wager["Time"].toString().toInt() + Wager["Start"].toString().toInt() - Timestamp.now().seconds <= 0) {
+                            GOLD = GOLD!! - Wager["Reward"].toString().toInt()
+                            Wager = HashMap()
+                            displayFinishedWager("Failure")
+                            mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
+                                    .update("GOLD", GOLD,
+                                            "Wager", Wager)
+                                    .addOnSuccessListener {
+                                        Log.d(tag, "[getCoinzData] Successfully updated Wager")
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Log.d(tag, "[getCoinzData] ${e.message.toString()}")
+                                    }
+                        }
+                    }
+
                     if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
                         Log.d(tag, "[getCoinzData] New Day!")
                         CollectedID  = arrayListOf()
                         CoinzExchanged = 0
                         CoinzReceived = 0
                         Rerolled = false
+                        AllCollectedToday = false
+                        WageredToday = false
 
                         for (i in (0..1)) {
                             if (Quests.size < 10) {
@@ -429,6 +440,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                                 val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
                                 val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
                                 val Quest = HashMap<String, Any>()
+
                                 Quest["Amount"] = Amount
                                 Quest["Currency"] = Currency
                                 Quest["Reward"] = Reward
@@ -436,15 +448,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                                 Quests.add(Quest)
                             }
                         }
-                        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+                        mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                                 .update("CollectedID", CollectedID,
                                         "CoinzExchanged", CoinzExchanged,
                                         "CoinzReceived", CoinzReceived,
                                         "LastDate", currentDate,
                                         "Quests", Quests,
-                                        "Rerolled", Rerolled)
+                                        "Rerolled", Rerolled,
+                                        "AllCollectedToday", AllCollectedToday,
+                                        "WageredToday", WageredToday)
                                 .addOnSuccessListener {
-                                    Log.d(tag, "[getCoinzData] New quest added")
+                                    Log.d(tag, "[getCoinzData] New day, some values successfully reset")
                                 }
                                 .addOnFailureListener { e ->
                                     Log.d(tag, "[getCoinzData] ${e.message.toString()}")
@@ -455,40 +469,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                         CoinzExchanged = it.get("CoinzExchanged").toString().toInt()
                         CoinzReceived = it.get("CoinzReceived").toString().toInt()
                     }
-
-                    /*if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
-                        CoinzExchanged = 0
-                    } else {
-                        CoinzExchanged = it.get("CoinzExchanged").toString().toInt()
-                    }
-
-                    if (LastDate != currentDate && Timestamp.now().seconds >= LastTimestamp) {
-                        val Amount = (3..6).shuffled().first()
-                        val Currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
-                        val Reward = arrayListOf(100, 150, 200, 300)[Amount - 3]
-                        val Quest = HashMap<String, Any>()
-                        Quest.put("Amount", Amount)
-                        Quest.put("Currency", Currency)
-                        Quest.put("Reward", Reward)
-                        Quests.add(Quest)
-
-                        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
-                                .update("Quests", Quests)
-                                .addOnSuccessListener {
-                                    Log.d(tag, "[getCoinzData] New quest added")
-                                }
-                                .addOnFailureListener {
-                                    Log.d(tag, "[getCoinzData] ${it.message.toString()}")
-                                }
-
-                    }*/
-
                     CoinzDataDowloaded = true
 
                     Log.d(tag, "[getCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
-                    /*for (ID in CollectedID) {
-                        Log.d(tag, "[getCoinzData] $ID")
-                    }*/
 
                     if (!markersDisplyed && mapReady && Timestamp.now().seconds >= LastTimestamp) {
                         Log.d(tag, "[getCoinzData] Displaying markers")
@@ -498,6 +481,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     if (Timestamp.now().seconds < LastTimestamp) {
                         invalidDateAndTimeSnackbar?.show()
                     }
+
+                    if(!Wager.isEmpty()) {
+                        main_WagerTextView.visibility = View.VISIBLE
+                        setWagerTimer()
+                    }
+
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[getCoinzData] ${it.message.toString()}")
@@ -506,14 +495,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     private fun setCoinzData() {
         val userData = HashMap<String, Any>()
-        /*userData.put("QUID", 1)
-        userData.put("PENY", 1)
-        userData.put("DOLR", 1)
-        userData.put("SHIL", 1)*/
         userData["GOLD"] = GOLD!!
-        //userData.put("CollectedID", Arrays.asList(""))
         userData["CollectedID"] = CollectedID
-        //userData.put("CollectedCoinz", listOf(""))
         userData["CollectedCoinz"] = CollectedCoinz
         userData["LastDate"] = currentDate
         userData["LastTimestamp"] = Timestamp.now().seconds
@@ -523,15 +506,22 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         userData["Rerolled"] = Rerolled
         userData["Quests"] = Quests
         userData["TransferHistory"] = TransferHistory
+        userData["AllCollectedToday"] = AllCollectedToday
+        userData["Wager"] = Wager
+        userData["WageredToday"] = WageredToday
+
         Log.d(tag, "[setCoinzData] Size of CollectedID: ${CollectedID.size}, LastDate: $LastDate, currentDate: $currentDate")
-        /*for (ID in CollectedID) {
-            Log.d(tag, "[setCoinzData] $ID")
-        }*/
-        if (FirebaseAuth.getInstance().currentUser?.uid == null) {
+
+        if (mAuth.currentUser?.uid == null) {
             finish()
         }
 
-        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+        if (!AllCollectedToday && CollectedID.size >= 50) {
+            AllCollectedToday = true
+            GOLD = GOLD!! + 2500
+        }
+
+        mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .set(userData)
                 .addOnSuccessListener {
                     Log.d(tag, "[setCoinzData] Successfully added to Firestore")
@@ -584,6 +574,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                         val Coin = HashMap<String, Any>()
                         Coin["Currency"] = feature.properties()!!["currency"].asString
                         Coin["Value"] = feature.properties()!!["value"].asDouble
+                        Coin["Time"] = Timestamp.now().seconds
                         CollectedCoinz.add(Coin)
                         Log.d(tag, "[checkCoinz] Added Coin to collectedCoinz")
                         CollectedID.add(feature.properties()!!["id"].asString)
@@ -600,6 +591,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                             }
                         }
                         Quests.removeIf{it["CompletionStage"].toString().toInt() >= it["Amount"].toString().toInt()}
+
+                        if (!Wager.isEmpty()) {
+                            Wager["CompletionStage"] = Wager["CompletionStage"].toString().toInt() + 1
+
+                            if (Wager["CompletionStage"].toString().toInt() >= Wager["Amount"].toString().toInt()) {
+                                WagerTimer.cancel()
+                                GOLD = GOLD!! + Wager["Reward"].toString().toInt()
+                                Wager = HashMap()
+                                displayFinishedWager("Success")
+                            }
+                        }
+
+
+
                         setCoinzData()
                         for (marker in markers) {
                             if (marker?.position == LatLng(coordinatesAsList[1], coordinatesAsList[0]) && marker.title == feature.properties()!!["currency"].asString && marker.snippet == feature.properties()!!["value"].asString) {
@@ -615,6 +620,61 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Log.d(tag, "[checkCoinz] originLocation not initialized or markers not displayed")
         }
     }
+
+    private fun setWagerTimer(){
+        val timeLeft = Wager["Time"].toString().toInt() - Timestamp.now().seconds + Wager["Start"].toString().toInt()
+        updateWagerTimer()
+        WagerTimer = object: CountDownTimer(timeLeft*1000, 1000){
+            override fun onFinish() {
+                GOLD = GOLD!! - Wager["Reward"].toString().toInt()
+                Wager = HashMap()
+                mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
+                        .update("GOLD", GOLD,
+                                "Wager", Wager)
+                        .addOnSuccessListener {
+                            Log.d(tag, "[setWagerTimer] Successfully updated Wager")
+                        }
+                        .addOnFailureListener {  e ->
+                            Log.d(tag, "[setWagerTimer] ${e.message.toString()}")
+                        }
+                displayFinishedWager("Failure")
+            }
+            override fun onTick(millisUntilFinished: Long) {
+                updateWagerTimer()
+            }
+        }
+        WagerTimer.start()
+    }
+
+    private fun updateWagerTimer() {
+        val timeLeft = Wager["Time"].toString().toInt() - Timestamp.now().seconds + Wager["Start"].toString().toInt()
+        main_WagerTextView.text = String.format(getString(R.string.WagerTimer), timeLeft / 60, timeLeft - (timeLeft / 60) * 60, Wager["CompletionStage"], Wager["Amount"])
+    }
+
+    private fun displayFinishedWager(result: String) {
+        main_WagerTextView.visibility = View.VISIBLE
+        if (result == "Success") {
+            main_WagerTextView.text = getString(R.string.WagerSuccess)
+            object: CountDownTimer(5000, 1000){
+                override fun onFinish() {
+                    main_WagerTextView.visibility = View.GONE
+                }
+                override fun onTick(millisUntilFinished: Long) {}
+
+            }
+                    .start()
+        } else {
+            main_WagerTextView.text = getString(R.string.WagerFailure)
+            object: CountDownTimer(5000, 1000){
+                override fun onFinish() {
+                    main_WagerTextView.visibility = View.GONE
+                }
+                override fun onTick(millisUntilFinished: Long) {}
+            }
+                    .start()
+        }
+    }
+
 
     @SuppressWarnings("MissingPermission")
     private fun initaliseLocationEngine() {
@@ -708,8 +768,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         if (::locationEngine.isInitialized) {
                 try {
                     locationEngine.requestLocationUpdates()
+                    Log.d(tag, "[onStart] requesting Location updates")
                 } catch (throwable: SecurityException) {
                     locationEngine.addLocationEngineListener(this)
+                    Log.d(tag, "[onStart] Failed to request Location updates")
                 }
 
         }
@@ -717,7 +779,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
 
 
-        if (FirebaseAuth.getInstance().currentUser?.uid == null) {
+        if (mAuth.currentUser?.uid == null) {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
         val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
@@ -734,7 +796,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Log.d(tag, "[onStart] geoJSON maps are up to date")
             coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
         }
-        if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+        if (mAuth.currentUser?.uid != null) {
             getCoinzData()
         }
 
@@ -760,8 +822,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             if (!locationEnabled) {
                 enableLocation()
             }
-            //initaliseLocationEngine()
-            //initialiseLocationLayer()
             if (locationServicesDisabledSnackbar?.isShown == true) {
                 locationServicesDisabledSnackbar?.dismiss()
             }
@@ -781,15 +841,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             invalidDateAndTimeSnackbar?.dismiss()
         }
 
-        if (FirebaseAuth.getInstance().currentUser?.uid == null) {
+        if (mAuth.currentUser?.uid == null) {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
 
         if (::locationEngine.isInitialized) {
                 try {
                     locationEngine.requestLocationUpdates()
+                    Log.d(tag, "[onResume] requesting Location updates")
                 } catch (throwable: SecurityException) {
                     locationEngine.addLocationEngineListener(this)
+                    Log.d(tag, "[onResume] Failed to request Location updates")
                 }
         }
 
@@ -800,26 +862,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         mapView?.onPause()
         Log.d(tag, "[onPause] App is onPause")
 
-        if(::locationEngine.isInitialized) {
-                locationEngine.removeLocationEngineListener(this)
-                locationEngine.removeLocationUpdates()
-
-        }
-        if (locationServicesDisabledSnackbar?.isShown == true) {
-            locationServicesDisabledSnackbar?.dismiss()
-        }
-
     }
 
     public override fun onStop() {
         super.onStop()
         mapView?.onStop()
 
-        if(::locationEngine.isInitialized) {
+        /*if(::locationEngine.isInitialized) {
                 locationEngine.removeLocationEngineListener(this)
                 locationEngine.removeLocationUpdates()
 
-        }
+        }*/
 
 
 

@@ -11,6 +11,7 @@ import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthSettings
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_transfer_history.*
 
@@ -18,11 +19,17 @@ class TransferHistoryActivity : AppCompatActivity() {
 
     private var tag = "TransferHistoryActivity"
 
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mStore: FirebaseFirestore
+
     private var TransferHistory: MutableList<HashMap<String, Any>> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_transfer_history)
+
+        mAuth = FirebaseAuth.getInstance()
+        mStore = FirebaseFirestore.getInstance()
 
     }
 
@@ -74,7 +81,7 @@ class TransferHistoryActivity : AppCompatActivity() {
 
     private fun getTransferHistoryData() {
 
-        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+        mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .get()
                 .addOnSuccessListener {
                     @Suppress("UNCHECKED_CAST")
@@ -90,7 +97,7 @@ class TransferHistoryActivity : AppCompatActivity() {
 
     private fun setTransferHistoryData() {
 
-        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+        mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .update("TransferHistory", TransferHistory)
                 .addOnSuccessListener {
                     Log.d(tag, "[setTransferHistoryData] Successfully updated TransferHistory")

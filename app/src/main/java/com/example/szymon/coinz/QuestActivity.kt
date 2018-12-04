@@ -18,12 +18,18 @@ class QuestActivity : AppCompatActivity() {
 
     private var tag = "QuestActivity"
 
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mStore: FirebaseFirestore
+
     private var Rerolled = false
     private var Quests: MutableList<HashMap<String, Any>> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quest)
+
+        mAuth = FirebaseAuth.getInstance()
+        mStore = FirebaseFirestore.getInstance()
     }
 
     private fun displayQuests() {
@@ -67,7 +73,7 @@ class QuestActivity : AppCompatActivity() {
 
     private fun getQuestData() {
 
-        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+        mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .get()
                 .addOnSuccessListener {
                     Rerolled = it.get("Rerolled") as Boolean
@@ -83,7 +89,7 @@ class QuestActivity : AppCompatActivity() {
     }
 
     private fun setQuestData() {
-        FirebaseFirestore.getInstance().collection("Coinz").document(FirebaseAuth.getInstance().currentUser?.email!!)
+        mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .update("Quests", Quests,
                         "Rerolled", Rerolled)
                 .addOnSuccessListener {

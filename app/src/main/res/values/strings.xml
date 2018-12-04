@@ -1,4 +1,6 @@
 <resources>
+    <string name="app_name">Coinz</string>
+    <string name="Coinz">Coinz</string>
     <string name="action_settings">Settings</string>
     <string name="Bank">Bank</string>
     <string name="exchangeRates">Exchange Rates</string>
@@ -29,6 +31,19 @@
     <string name="Delete">Delete</string>
     <string name="LoadingData">Loading&#8230;</string>
     <string name="SuccessfulTransfer">Coin successfully transferred</string>
+    <string name="RaceMode">Race Mode</string>
+    <string name="Amount">Amount:</string>
+    <string name="Time">Time:</string>
+    <string name="WagerOfferPlaceholder">You can wager 500 GOLD</string>
+    <string name="WagerOffer">You can wager %1$d GOLD</string>
+    <string name="Wager">Wager!</string>
+    <string name="AlreadyWageredToday">You have already wagered today</string>
+    <string name="WagerHappeningNow">There is wager happening now!</string>
+    <string name="WagerNotEnoughGOLD">You don\'t have enough GOLD</string>
+    <string name="WagerNotEnoughCoinz">There are too few Coinz on the map</string>
+    <string name="WagerTimer">Time Left: %1$02d:%2$02d, %3$d/%4$d</string>
+    <string name="WagerSuccess">Congratulations!</string>
+    <string name="WagerFailure">Better luck next time</string>
     <string name="access_token">pk.eyJ1IjoibTBudGVzIiwiYSI6ImNqbnZwejhqMDAwbDYzdm11Mm1td3lncDAifQ.1hbLQjREfwCIqq289JfPig</string>
     <string name="title_activity_login">Sign in</string>
     <!-- Strings related to login -->

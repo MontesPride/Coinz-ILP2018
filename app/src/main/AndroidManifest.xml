@@ -47,7 +47,11 @@
         <activity
             android:name=".QuestActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".TransferHistoryActivity"
+        <activity
+            android:name=".TransferHistoryActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".RaceActivity"
             android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 

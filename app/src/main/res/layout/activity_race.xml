@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".RaceActivity"
+    android:background="#d3e4ff">
+
+    <TextView
+        android:id="@+id/race_RaceMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/RaceMode"
+        android:textStyle="bold"
+        android:textSize="30sp"
+        android:gravity="center" />
+
+    <View
+        android:id="@+id/race_horizontalTopLine"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#c0c0c0"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/race_RaceMode"
+        />
+
+    <TableRow
+        android:id="@+id/race_AmountTableRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:weightSum="4"
+        android:layout_below="@id/race_horizontalTopLine">
+
+        <TextView
+            android:id="@+id/race_AmountTextView"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="15dp"
+            android:layout_weight="2"
+            android:text="@string/Amount"
+            android:textSize="20sp"
+            android:gravity="center" />
+
+        <Spinner
+            android:id="@+id/race_AmountSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="30dp"
+            android:layout_weight="2">
+        </Spinner>
+
+    </TableRow>
+
+    <TableRow
+        android:id="@+id/race_TimeTableRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:weightSum="4"
+        android:layout_below="@id/race_AmountTableRow">
+
+        <TextView
+            android:id="@+id/race_TimeTextView"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="15dp"
+            android:layout_weight="2"
+            android:text="@string/Time"
+            android:textSize="20sp"
+            android:gravity="center"/>
+
+        <Spinner
+            android:id="@+id/race_TimeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="30dp"
+            android:layout_weight="2">
+        </Spinner>
+
+    </TableRow>
+
+    <View
+        android:id="@+id/race_horizontalMiddleLine"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#c0c0c0"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/race_TimeTableRow"
+        />
+
+    <TextView
+        android:id="@+id/race_WagerTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/WagerOfferPlaceholder"
+        android:textSize="25sp"
+        android:gravity="center"
+        android:layout_below="@+id/race_horizontalMiddleLine"/>
+
+    <Button
+        android:id="@+id/race_WagerButton"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:text="@string/Wager"
+        android:textSize="20sp"
+        android:layout_marginTop="15dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/rounded_button"
+        android:layout_below="@+id/race_WagerTextView"
+        android:enabled="false"/>
+
+</RelativeLayout>

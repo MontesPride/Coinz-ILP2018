@@ -1,6 +1,7 @@
 package com.example.szymon.coinz
 
 import android.content.Context
+import android.graphics.Typeface
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -9,18 +10,28 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_ranking.*
+import org.w3c.dom.Text
+import java.lang.reflect.Type
 
 class RankingActivity : AppCompatActivity() {
 
     private var tag = "RankingActivity"
+
+    private lateinit var mAuth: FirebaseAuth
+    private lateinit var mStore: FirebaseFirestore
 
     private var userData: MutableList<HashMap<String, Any>> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ranking)
+
+        mAuth = FirebaseAuth.getInstance()
+        mStore = FirebaseFirestore.getInstance()
+
         val userDataDescription = HashMap<String, Any>()
         userDataDescription["Username"] = "Username"
         userDataDescription["Gold"] = "GOLD"
@@ -55,6 +66,12 @@ class RankingActivity : AppCompatActivity() {
             if (position != 0) {
                 rankingView.findViewById<TextView>(R.id.ranking_username).text = "%s. %s".format(position.toString(), userData[position]["Username"].toString())
                 rankingView.findViewById<TextView>(R.id.ranking_gold).text = "%.1f".format(userData[position]["Gold"].toString().toDouble())
+
+                if (userData[position]["Username"].toString() == mAuth.currentUser?.displayName) {
+                    rankingView.findViewById<TextView>(R.id.ranking_username).typeface = Typeface.DEFAULT_BOLD
+                    rankingView.findViewById<TextView>(R.id.ranking_gold).typeface = Typeface.DEFAULT_BOLD
+                }
+
             } else {
                 rankingView.findViewById<TextView>(R.id.ranking_username).text = userData[position]["Username"].toString()
                 rankingView.findViewById<TextView>(R.id.ranking_gold).text = userData[position]["Gold"].toString()
@@ -70,7 +87,7 @@ class RankingActivity : AppCompatActivity() {
     public override fun onStart() {
         super.onStart()
 
-        FirebaseFirestore.getInstance().collection("Coinz")
+        mStore.collection("Coinz")
                 .get()
                 .addOnSuccessListener { data ->
                     val userDataTempList: MutableList<HashMap<String, Any>> = arrayListOf()

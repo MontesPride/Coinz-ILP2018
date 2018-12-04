@@ -12,6 +12,16 @@
     tools:context=".SignUpActivity"
     android:background="#d3e4ff">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/Coinz"
+        android:textSize="75sp"
+        android:textStyle="bold|italic"
+        android:gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"/>
+
     <!-- Login progress -->
     <ProgressBar
         android:id="@+id/login_progress"
@@ -84,6 +94,12 @@
                 android:textStyle="bold"
                 android:background="@drawable/rounded_button"
                 android:layout_marginBottom="8dp"/>
+
+            <com.google.android.gms.common.SignInButton
+                android:id="@+id/google_sign_in_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
 
             <TextView
                 android:id="@+id/go_back_to_signup"
