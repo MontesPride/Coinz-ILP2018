@@ -136,6 +136,7 @@ class SignUpActivity : AppCompatActivity() {
             // perform the user login attempt.
             showProgress(true)
 
+            Log.d(tag, "[attemptLogin] Creating new user")
             mAuth.createUserWithEmailAndPassword(emailStr, passwordStr)
                     .addOnCompleteListener {
 

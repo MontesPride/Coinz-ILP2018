@@ -43,6 +43,7 @@
     <string name="DailyQuestsFailDownload">Failed to download quests</string>
     <string name="DailyQuestsFailUpdate">Failed to update quests data</string>
     <string name="RerollQuest">Reroll</string>
+    <string name="QuestCompleted">Quest Completed!</string>
 
     <!-- TRANSFER HISTORY ACTIVITY -->
     <string name="TransferHistory">Transfer History</string>
@@ -57,7 +58,7 @@
     <string name="Amount">Amount:</string>
     <string name="Time">Time:</string>
     <string name="WagerOfferPlaceholder">You can wager 500 GOLD</string>
-    <string name="WagerOffer">You can wager %1$d GOLD</string>
+    <string name="WagerOffer">Do you want to wager %1$d GOLD?</string>
     <string name="Wager">Wager!</string>
     <string name="AlreadyWageredToday">You have already wagered today</string>
     <string name="WagerHappeningNow">There is wager happening now!</string>

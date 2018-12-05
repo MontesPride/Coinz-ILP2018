@@ -64,6 +64,11 @@ class TransferHistoryActivity : AppCompatActivity() {
             //displaying information and setting up delete buttons
             transferHistoryView.findViewById<TextView>(R.id.transferHistory_From).text = "From: %s".format(transferHistory[position]["From"].toString())
             transferHistoryView.findViewById<TextView>(R.id.transferHistory_Amount).text = "Amount: %.2f".format(transferHistory[position]["Amount"].toString().toDouble())
+
+            if (position == 0) {
+                transferHistoryView.findViewById<Button>(R.id.transferHistory_DeleteAllButton).visibility = View.VISIBLE
+            }
+
             transferHistoryView.findViewById<Button>(R.id.transferHistory_DeleteAllButton).setOnClickListener {
                 transferHistory = arrayListOf()
                 displayTransferHistory()

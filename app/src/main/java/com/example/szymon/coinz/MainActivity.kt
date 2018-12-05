@@ -578,6 +578,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                                 if (quest["CompletionStage"].toString().toInt() >= quest["Amount"].toString().toInt()) {
                                     gold = gold!! + quest["Reward"].toString().toDouble()
                                     Log.d(tag, "[checkCoinz] Quest completed ${quests.indexOf(quest)}, $gold")
+                                    Toast.makeText(this, getString(R.string.QuestCompleted), Toast.LENGTH_LONG).show()
                                 }
                             }
                         }
