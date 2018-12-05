@@ -31,6 +31,8 @@ class RaceActivity : AppCompatActivity() {
     private var gold = 0.0
     private var collectedID: MutableList<String> = arrayListOf()
 
+    private var dataRetrieved = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_race)
@@ -72,6 +74,7 @@ class RaceActivity : AppCompatActivity() {
 
         //setting up WagerButton's onClickListener which starts the wager if possible
         race_WagerButton.setOnClickListener {
+
             if (reward > gold) {
                 race_WagerTextView.text = getString(R.string.WagerNotEnoughGOLD)
             } else if (5*(amountIndex + 1) > 50 - collectedID.size) {
@@ -91,18 +94,20 @@ class RaceActivity : AppCompatActivity() {
 
     //Updating TextView with the wager offer
     private fun updateWagerOffer() {
-        if (wageredToday && wager.isEmpty()) {
-            race_WagerTextView.text = getString(R.string.AlreadyWageredToday)
-            race_WagerButton.isEnabled = false
-        } else if (!wager.isEmpty()) {
-            race_WagerTextView.text = getString(R.string.WagerHappeningNow)
-            race_WagerButton.isEnabled = false
-        } else {
-            race_WagerTextView.text = String.format(getString(R.string.WagerOffer), rewards[9 + amountIndex - timeIndex])
-            race_WagerButton.isEnabled = true
+        Log.d(tag, "[updateWagerOffer] Updating wager offer. Data retrieved: $dataRetrieved")
+        if (dataRetrieved) {
+            if (wageredToday && wager.isEmpty()) {
+                race_WagerTextView.text = getString(R.string.AlreadyWageredToday)
+                race_WagerButton.isEnabled = false
+            } else if (!wager.isEmpty()) {
+                race_WagerTextView.text = getString(R.string.WagerHappeningNow)
+                race_WagerButton.isEnabled = false
+            } else {
+                race_WagerTextView.text = String.format(getString(R.string.WagerOffer), rewards[9 + amountIndex - timeIndex])
+                race_WagerButton.isEnabled = true
+            }
+            reward = rewards[9 + amountIndex - timeIndex]
         }
-        reward = rewards[9 + amountIndex - timeIndex]
-        Log.d(tag, "[updateWagerOffer] $reward")
     }
 
     //retrieving data from Firestore
@@ -116,12 +121,14 @@ class RaceActivity : AppCompatActivity() {
                     gold = it.get("GOLD").toString().toDouble()
                     @Suppress("UNCHECKED_CAST")
                     collectedID = it.get("CollectedID") as MutableList<String>
+                    dataRetrieved = true
                     updateWagerOffer()
-                    race_WagerButton.isEnabled = false
+                    Log.d(tag, "[getData] Successfully retrieved data")
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[getData] ${it.message.toString()}")
                     race_WagerButton.isEnabled = false
+                    race_WagerTextView.text = getString(R.string.DownloadDataFail)
                     Toast.makeText(this, getString(R.string.DownloadDataFail), Toast.LENGTH_LONG).show()
                 }
     }
@@ -143,6 +150,10 @@ class RaceActivity : AppCompatActivity() {
 
     public override fun onStart() {
         super.onStart()
+        Log.d(tag, "[onStart] Activity is onStart")
+        race_WagerButton.isEnabled = false
+        race_WagerTextView.text = getString(R.string.LoadingData)
+        dataRetrieved = false
         getData()
     }
 

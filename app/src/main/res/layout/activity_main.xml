@@ -92,7 +92,8 @@
         android:layout_gravity="top|end"
         android:layout_margin="@dimen/fab_margin"
         android:src="@drawable/signout_icon"
-        android:backgroundTint="@color/dark_blue"/>
+        android:backgroundTint="@color/dark_blue"
+        android:visibility="invisible"/>
 
 
 </android.support.design.widget.CoordinatorLayout>

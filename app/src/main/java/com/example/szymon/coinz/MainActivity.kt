@@ -9,7 +9,6 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import com.google.firebase.Timestamp
@@ -126,40 +125,30 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         mStore = FirebaseFirestore.getInstance()
 
         //Setting up buttons' onClickListeners
-        main_OpenMenu.setOnClickListener {
-            if (visibleButtons) {
-                main_Ranking.hide()
-                main_Race.hide()
-                main_Bank.hide()
-                main_Transfer.hide()
-                main_Quest.hide()
-            } else {
-                main_Ranking.show()
-                main_Race.show()
-                main_Bank.show()
-                main_Transfer.show()
-                main_Quest.show()
-            }
-            visibleButtons = !visibleButtons
-        }
+        main_OpenMenu.setOnClickListener { showOrHideButtons() }
 
         main_Ranking.setOnClickListener {
+            showOrHideButtons()
             startActivity(Intent(this, RankingActivity::class.java))
         }
 
         main_Race.setOnClickListener {
+            showOrHideButtons()
             startActivity(Intent(this, RaceActivity::class.java))
         }
 
         main_Bank.setOnClickListener {
+            showOrHideButtons()
             startActivity(Intent(this, BankActivity::class.java))
         }
 
         main_Transfer.setOnClickListener {
+            showOrHideButtons()
             startActivity(Intent(this, TransferHistoryActivity::class.java))
         }
 
         main_Quest.setOnClickListener {
+            showOrHideButtons()
             startActivity(Intent(this, QuestActivity::class.java))
         }
 
@@ -178,6 +167,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         mapView?.getMapAsync(this)
     }
 
+    private fun showOrHideButtons() {
+        if (visibleButtons) {
+            main_Ranking.hide()
+            main_Race.hide()
+            main_Bank.hide()
+            main_Transfer.hide()
+            main_Quest.hide()
+            main_SignOut.hide()
+        } else {
+            main_Ranking.show()
+            main_Race.show()
+            main_Bank.show()
+            main_Transfer.show()
+            main_Quest.show()
+            main_SignOut.show()
+        }
+        visibleButtons = !visibleButtons
+    }
+
     override fun onMapReady(mapboxMap: MapboxMap?) {
         if (mapboxMap == null) {
             Log.d(tag, "[onMapReady] mapboxMap is null")
@@ -187,6 +195,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             map = mapboxMap
             //Setting up onMarkerClickListeners to display routing between player and a marker
             map?.setOnMarkerClickListener { marker ->
+
                 if (this::originLocation.isInitialized) {
                     Log.d(tag, "[onMarkerClick] originLocation initalized")
                     val originLocationAsPoint = Point.fromLngLat(originLocation.longitude, originLocation.latitude)
@@ -201,7 +210,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             map?.uiSettings?.isZoomControlsEnabled = true
 
             enableLocation()
-            //displayMarkers()
+
             if (!markersDisplyed && coinzDataDownloaded) {
                 Log.d(tag, "[onMapReady] Displaying markers")
                 markersDisplyed = true
@@ -263,6 +272,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private fun displayMarkers() {
         val featureList = FeatureCollection.fromJson(coinzMapData).features()
         for (feature in featureList!!) {
+
             if (feature.properties()!!["id"].asString in collectedID) continue
             val featureGeometry = feature.geometry().takeIf { it?.type() == "Point" } as Point
             val featureProperties = feature.properties()
@@ -273,6 +283,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             val markerColor = featureProperties["marker-color"].asString
             val markerSymbol = featureProperties["marker-symbol"].asString
             var icon: Icon
+
             when (markerColor) {
                 "#ff0000" -> when (markerSymbol) {
                     "0" -> icon = IconFactory.getInstance(this).fromResource(R.drawable.red_marker_0)
@@ -343,6 +354,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         if (mAuth.currentUser?.uid == null) {
             finish()
         }
+
         mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                 .get()
                 .addOnSuccessListener {
@@ -603,6 +615,38 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         }
     }
 
+    //Generating new document for a ner user
+    private fun createUserDocument(username: String): HashMap<String, Any> {
+
+        val userData = HashMap<String, Any>()
+        userData["GOLD"] = 0
+        userData["CollectedCoinz"] = listOf<HashMap<String, Any>>()
+        userData["CollectedID"] = listOf<String>()
+        userData["LastDate"] = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
+        userData["LastTimestamp"] = Timestamp.now().seconds
+        userData["CoinzExchanged"] = 0
+        userData["CoinzReceived"] = 0
+        userData["Username"] = username
+        userData["Rerolled"] = false
+        userData["TransferHistory"] = listOf<HashMap<String, Any>>()
+        userData["AllCollectedToday"] = false
+        val amount = (3..6).shuffled().first()
+        val currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
+        val reward = arrayListOf(100, 150, 200, 300)[amount - 3]
+        val quests: MutableList<HashMap<String, Any>> = arrayListOf()
+        val quest = HashMap<String, Any>()
+        quest["Amount"] = amount
+        quest["Currency"] = currency
+        quest["Reward"] = reward
+        quest["CompletionStage"] = 0
+        quests.add(quest)
+        userData["Quests"] = quests
+        userData["Wager"] = HashMap<String, Any>()
+        userData["WageredToday"] = false
+
+        return userData
+    }
+
     //creating Wager Timer as well as the function which takes player's gold if he fails to complete the challenge
     private fun setWagerTimer(){
         val timeLeft = wager["Time"].toString().toInt() - Timestamp.now().seconds + wager["Start"].toString().toInt()
@@ -617,7 +661,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                         .addOnSuccessListener {
                             Log.d(tag, "[setWagerTimer] Successfully updated Wager")
                         }
-                        .addOnFailureListener {  e ->
+                        .addOnFailureListener { e ->
                             Log.d(tag, "[setWagerTimer] ${e.message.toString()}")
                         }
                 displayFinishedWager("Failure")
@@ -782,11 +826,36 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Log.d(tag, "[onStart] geoJSON maps are up to date")
             coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
         }
-        //retrieve user's data from Firestore
+        //retrieve user's data from Firestore, during testing I have found out, there is a possibility of registering
+        //new user without creating his document in Firestore, so just in case I am trying to create it
         if (mAuth.currentUser?.uid != null) {
-            getCoinzData()
-        }
 
+            mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
+                    .get()
+                    .addOnSuccessListener { document ->
+                        if(!document.exists()) {
+
+                            val newUserData = createUserDocument(mAuth.currentUser?.displayName!!)
+
+                            mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
+                                    .set(newUserData)
+                                    .addOnSuccessListener {
+                                        Log.d(tag, "[onStart] Successfully created newUser document")
+                                        getCoinzData()
+                                    }
+                                    .addOnFailureListener {
+                                        Log.d(tag, "[onStart] ${it.message.toString()}")
+                                        Toast.makeText(this, getString(R.string.UpdateDataFail), Toast.LENGTH_LONG).show()
+                                    }
+                        } else {
+                            getCoinzData()
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.d(tag, "[onStart] ${e.message.toString()}")
+                        Toast.makeText(this, getString(R.string.DownloadDataFail), Toast.LENGTH_LONG).show()
+                    }
+        }
 
     }
 

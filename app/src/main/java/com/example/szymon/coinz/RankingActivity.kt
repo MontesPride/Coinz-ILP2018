@@ -72,7 +72,7 @@ class RankingActivity : AppCompatActivity() {
                 rankingView.findViewById<TextView>(R.id.ranking_username).text = "%s. %s".format(position.toString(), userData[position]["Username"].toString())
                 rankingView.findViewById<TextView>(R.id.ranking_gold).text = "%.1f".format(userData[position]["Gold"].toString().toDouble())
 
-                if (userData[position]["Username"].toString() == mAuth.currentUser?.displayName) {
+                if (userData[position]["ID"] == mAuth.currentUser?.email) {
                     rankingView.findViewById<TextView>(R.id.ranking_username).typeface = Typeface.DEFAULT_BOLD
                     rankingView.findViewById<TextView>(R.id.ranking_gold).typeface = Typeface.DEFAULT_BOLD
                 }
@@ -95,12 +95,14 @@ class RankingActivity : AppCompatActivity() {
         mStore.collection("Coinz")
                 .get()
                 .addOnSuccessListener { data ->
+                    Log.d(tag, "[onStart] Successfully retrieved data")
                     val userDataTempList: MutableList<HashMap<String, Any>> = arrayListOf()
                     for (document in data.documents) {
                         Log.d(tag, "[onStart] ${document.get("Username")}, ${document.get("GOLD")}")
                         val userDataTemp = HashMap<String, Any>()
                         userDataTemp["Username"] = document.get("Username")!!
                         userDataTemp["Gold"] = document.get("GOLD")!!
+                        userDataTemp["ID"] = document.id
                         userDataTempList.add(userDataTemp)
                     }
                     userDataTempList.sortByDescending{it["Gold"].toString().toDouble()}

@@ -277,7 +277,6 @@ class BankActivity : AppCompatActivity() {
                         Log.d(tag, "displaying transfer coinz")
                         displayTransferCoinz()
                     }
-
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[getCoinzData] ${it.message.toString()}")

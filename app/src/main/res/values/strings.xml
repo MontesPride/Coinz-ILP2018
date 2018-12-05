@@ -1,7 +1,15 @@
 <resources>
+    <!-- GENERAL STRINGS -->
     <string name="app_name">Coinz</string>
     <string name="Coinz">Coinz</string>
+    <string name="LoadingData">Loading&#8230;</string>
+    <string name="DownloadDataFail">Failed to download user data</string>
+    <string name="UpdateDataFail">Failed to update user data</string>
+    <string name="access_token">pk.eyJ1IjoibTBudGVzIiwiYSI6ImNqbnZwejhqMDAwbDYzdm11Mm1td3lncDAifQ.1hbLQjREfwCIqq289JfPig</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_sign_up">Coinz</string>
+
+    <!-- BANK ACTIVITY -->
     <string name="Bank">Bank</string>
     <string name="exchangeRates">Exchange Rates</string>
     <string name="Placeholder_zero">0</string>
@@ -21,25 +29,30 @@
     <string name="NoExchangesLeft">Come back tomorrow to exchange more Coinz</string>
     <string name="SomeExchangesLeft">You need to exchange 25 Coinz first</string>
     <string name="TransferSameEmail">You cannot transfer Coinz to yourself</string>
-    <string name="PlayerRanking">Player Ranking</string>
-    <string name="DailyQuests">Daily Quests</string>
-    <string name="TransferHistory">Transfer History</string>
-    <string name="TransferHistoryFailDownload">Failed to download transfer history</string>
-    <string name="TransferHistoryFailUpdate">Failed to update transfer history</string>
     <string name="FaieldTransferGOLD">Failed to transfer GOLD</string>
+    <string name="SuccessfulTransfer">Coin successfully transferred</string>
+
+    <!-- RANKING ACTIVITY -->
+    <string name="PlayerRanking">Player Ranking</string>
+    <string name="RankingNoPlayers">Failed to download players ranking</string>
+
+    <!-- QUEST ACTIVITY -->
+    <string name="DailyQuests">Daily Quests</string>
     <string name="NoDailyQuests">There are no more quests today.</string>
     <string name="NewDailyQuest">New quest added</string>
     <string name="DailyQuestsFailDownload">Failed to download quests</string>
     <string name="DailyQuestsFailUpdate">Failed to update quests data</string>
-    <string name="DownloadDataFail">Failed to download user data</string>
-    <string name="UpdateDataFail">Failed to update user data</string>
-    <string name="RankingNoPlayers">Failed to download players ranking</string>
-    <string name="NoTransfers">There are no transfers in your history</string>
     <string name="RerollQuest">Reroll</string>
+
+    <!-- TRANSFER HISTORY ACTIVITY -->
+    <string name="TransferHistory">Transfer History</string>
+    <string name="TransferHistoryFailDownload">Failed to download transfer history</string>
+    <string name="TransferHistoryFailUpdate">Failed to update transfer history</string>
+    <string name="NoTransfers">There are no transfers in your history</string>
     <string name="DeleteAll">Delete All</string>
     <string name="Delete">Delete</string>
-    <string name="LoadingData">Loading&#8230;</string>
-    <string name="SuccessfulTransfer">Coin successfully transferred</string>
+
+    <!-- RACE ACTIVITY -->
     <string name="RaceMode">Race Mode</string>
     <string name="Amount">Amount:</string>
     <string name="Time">Time:</string>
@@ -50,12 +63,14 @@
     <string name="WagerHappeningNow">There is wager happening now!</string>
     <string name="WagerNotEnoughGOLD">You don\'t have enough GOLD</string>
     <string name="WagerNotEnoughCoinz">There are too few Coinz on the map</string>
+
+    <!-- MAIN ACTIVITY -->
     <string name="WagerTimer">Time Left: %1$02d:%2$02d, %3$d/%4$d</string>
     <string name="WagerSuccess">Congratulations!</string>
     <string name="WagerFailure">Better luck next time</string>
-    <string name="access_token">pk.eyJ1IjoibTBudGVzIiwiYSI6ImNqbnZwejhqMDAwbDYzdm11Mm1td3lncDAifQ.1hbLQjREfwCIqq289JfPig</string>
+
+    <!-- SINGUP / LOGIN ACTIVITY -->
     <string name="title_activity_login">Sign in</string>
-    <!-- Strings related to login -->
     <string name="prompt_username">Username</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
@@ -65,6 +80,8 @@
     <string name="action_sign_in_short">Sign in</string>
     <string name="BackToRegistration">Back to Registration</string>
     <string name="action_already_registered">Already have an account</string>
+
+    <!-- ERRORS -->
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
@@ -80,8 +97,5 @@
     <string name="error_invalid_date_and_time">Set current Date and Time</string>
     <string name="error_field_required">This field is required</string>
     <string name="error_invalid_username">This username is too short</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
-    <string name="title_activity_sign_up">Coinz</string>
+
 </resources>

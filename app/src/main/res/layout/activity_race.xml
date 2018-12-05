@@ -98,7 +98,7 @@
         android:layout_marginStart="15dp"
         android:layout_marginEnd="15dp"
         android:layout_marginTop="15dp"
-        android:text="@string/WagerOfferPlaceholder"
+        android:text="@string/LoadingData"
         android:textSize="25sp"
         android:gravity="center"
         android:layout_below="@+id/race_horizontalMiddleLine"/>

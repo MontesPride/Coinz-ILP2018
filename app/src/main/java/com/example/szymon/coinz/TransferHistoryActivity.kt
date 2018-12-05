@@ -37,6 +37,7 @@ class TransferHistoryActivity : AppCompatActivity() {
     //displaying received transfers history
     private fun displayTransferHistory() {
         if (transferHistory.size <= 0) {
+            transferHistory_noTransfers.text = getString(R.string.NoTransfers)
             transferHistory_noTransfers.visibility = View.VISIBLE
         } else {
             transferHistory_noTransfers.visibility = View.GONE
