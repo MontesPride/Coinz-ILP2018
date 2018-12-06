@@ -21,6 +21,7 @@ import com.mapbox.android.core.location.LocationEnginePriority
 import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
@@ -233,6 +234,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     .accessToken(getString(R.string.access_token))
                     .origin(origin)
                     .destination(destination)
+                    .profile(DirectionsCriteria.PROFILE_WALKING)
                     .build()
                     .getRoute(object: Callback<DirectionsResponse> {
                         override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>) {
@@ -566,6 +568,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                         val coin = HashMap<String, Any>()
                         coin["Currency"] = feature.properties()!!["currency"].asString
                         coin["Value"] = feature.properties()!!["value"].asDouble
+                        //coin["Time"] is currently not used but I am gonna leave it there anyway.
+                        //This was a part of game difficulty implementation
+                        //Part of the project I have decided not to implement (see project report)
                         coin["Time"] = Timestamp.now().seconds
                         collectedCoinz.add(coin)
                         Log.d(tag, "[checkCoinz] Added Coin to collectedCoinz")
