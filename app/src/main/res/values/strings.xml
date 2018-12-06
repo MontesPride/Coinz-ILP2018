@@ -3,8 +3,9 @@
     <string name="app_name">Coinz</string>
     <string name="Coinz">Coinz</string>
     <string name="LoadingData">Loading&#8230;</string>
-    <string name="DownloadDataFail">Failed to download user data</string>
-    <string name="UpdateDataFail">Failed to update user data</string>
+    <string name="DownloadDataFail">Failed to download user data. Check your internet connection.</string>
+    <string name="UpdateDataFail">Failed to update user data. Check your internet connection.</string>
+    <string name="DownloadMapDataFail">Failed to download map data. Check your internet connection.</string>
     <string name="access_token">pk.eyJ1IjoibTBudGVzIiwiYSI6ImNqbnZwejhqMDAwbDYzdm11Mm1td3lncDAifQ.1hbLQjREfwCIqq289JfPig</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_sign_up">Coinz</string>
@@ -29,26 +30,26 @@
     <string name="NoExchangesLeft">Come back tomorrow to exchange more Coinz</string>
     <string name="SomeExchangesLeft">You need to exchange 25 Coinz first</string>
     <string name="TransferSameEmail">You cannot transfer Coinz to yourself</string>
-    <string name="FaieldTransferGOLD">Failed to transfer GOLD</string>
+    <string name="FaieldTransferGOLD">Failed to transfer GOLD. Check your internet connection.</string>
     <string name="SuccessfulTransfer">Coin successfully transferred</string>
 
     <!-- RANKING ACTIVITY -->
     <string name="PlayerRanking">Player Ranking</string>
-    <string name="RankingNoPlayers">Failed to download players ranking</string>
+    <string name="RankingNoPlayers">Failed to download players ranking. Check your internet connection.</string>
 
     <!-- QUEST ACTIVITY -->
     <string name="DailyQuests">Daily Quests</string>
     <string name="NoDailyQuests">There are no more quests today.</string>
     <string name="NewDailyQuest">New quest added</string>
-    <string name="DailyQuestsFailDownload">Failed to download quests</string>
-    <string name="DailyQuestsFailUpdate">Failed to update quests data</string>
+    <string name="DailyQuestsFailDownload">Failed to download quests. Check your internet connection.</string>
+    <string name="DailyQuestsFailUpdate">Failed to update quests data. Check your internet connection.</string>
     <string name="RerollQuest">Reroll</string>
     <string name="QuestCompleted">Quest Completed!</string>
 
     <!-- TRANSFER HISTORY ACTIVITY -->
     <string name="TransferHistory">Transfer History</string>
-    <string name="TransferHistoryFailDownload">Failed to download transfer history</string>
-    <string name="TransferHistoryFailUpdate">Failed to update transfer history</string>
+    <string name="TransferHistoryFailDownload">Failed to download transfer history. Check your internet connection.</string>
+    <string name="TransferHistoryFailUpdate">Failed to update transfer history. Check your internet connection.</string>
     <string name="NoTransfers">There are no transfers in your history</string>
     <string name="DeleteAll">Delete All</string>
     <string name="Delete">Delete</string>

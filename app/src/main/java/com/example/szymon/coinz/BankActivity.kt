@@ -3,6 +3,7 @@ package com.example.szymon.coinz
 import android.content.Context
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_bank.*
+import org.json.JSONException
 import org.json.JSONObject
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -223,11 +225,20 @@ class BankActivity : AppCompatActivity() {
         getCoinzData()
         coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
         gold = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE).getFloat("GOLD", 0.0.toFloat()).toDouble()
-        rates = JSONObject(coinzMapData).get("rates") as JSONObject
+        try {
+            rates = JSONObject(coinzMapData).get("rates") as JSONObject
+            bank_QUIDvalue.text = String.format(getString(R.string.RatesValue), rates.get("QUID"))
+            bank_PENYvalue.text = String.format(getString(R.string.RatesValue), rates.get("PENY"))
+            bank_DOLRvalue.text = String.format(getString(R.string.RatesValue), rates.get("DOLR"))
+            bank_SHILvalue.text = String.format(getString(R.string.RatesValue), rates.get("SHIL"))
+        } catch (e: JSONException) {
+            Snackbar.make(bank_exchangeRates, getString(R.string.DownloadMapDataFail), Snackbar.LENGTH_INDEFINITE).show()
+        }
+        /*rates = JSONObject(coinzMapData).get("rates") as JSONObject
         bank_QUIDvalue.text = String.format(getString(R.string.RatesValue), rates.get("QUID"))
         bank_PENYvalue.text = String.format(getString(R.string.RatesValue), rates.get("PENY"))
         bank_DOLRvalue.text = String.format(getString(R.string.RatesValue), rates.get("DOLR"))
-        bank_SHILvalue.text = String.format(getString(R.string.RatesValue), rates.get("SHIL"))
+        bank_SHILvalue.text = String.format(getString(R.string.RatesValue), rates.get("SHIL"))*/
         bank_GOLDvalue.text = String.format(getString(R.string.GoldAmount), gold)
     }
 

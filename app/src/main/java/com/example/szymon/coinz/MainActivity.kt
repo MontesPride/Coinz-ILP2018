@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
             enableLocation()
 
-            if (!markersDisplyed && coinzDataDownloaded) {
+            if (!markersDisplyed && coinzDataDownloaded && !downloadError) {
                 Log.d(tag, "[onMapReady] Displaying markers")
                 markersDisplyed = true
                 displayMarkers()
@@ -270,6 +270,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
     //Displaying all the markers, skipping collected ones
     private fun displayMarkers() {
+        Log.d(tag, "[displayMarkers] $coinzMapData")
         val featureList = FeatureCollection.fromJson(coinzMapData).features()
         for (feature in featureList!!) {
 
@@ -450,7 +451,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     coinzDataDownloaded = true
 
                     //If time and date isn't correctly set up on the user's phone, don't display markers and ask him to set it up correctly
-                    if (!markersDisplyed && mapReady && Timestamp.now().seconds >= lastTimestamp) {
+                    if (!markersDisplyed && mapReady && Timestamp.now().seconds >= lastTimestamp && !downloadError) {
                         Log.d(tag, "[getCoinzData] Displaying markers")
                         markersDisplyed = true
                         displayMarkers()
@@ -1016,11 +1017,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
         override fun onPostExecute(result: String) {
             super.onPostExecute(result)
+
+            Log.d(tag, "[onPostExecute] $downloadError")
             if(!downloadError) {
                 downloadDate = currentDate
+                caller.downloadComplete(result)
+                onSuccessfulDownload()
+            } else {
+                Log.d(tag, "[onPostExecute] Failed to download map")
+                Snackbar.make(mapboxMapView, getString(R.string.DownloadMapDataFail), Snackbar.LENGTH_INDEFINITE).show()
             }
-            caller.downloadComplete(result)
-            onSuccessfulDownload()
+
         }
 
     } //end class DownloadFileTask
