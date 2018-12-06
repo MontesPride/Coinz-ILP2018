@@ -284,7 +284,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             val coordinatesAsList = featureGeometry.coordinates()
             val coordinatesAsLatLng = LatLng(coordinatesAsList[1], coordinatesAsList[0])
             val currencyName = featureProperties!!["currency"].asString
-            val currencyValue = "%.3f".format(featureProperties["value"].asString.toDouble())
+            val currencyValue = "Value: %.2f".format(featureProperties["value"].asString.toDouble())
             val markerColor = featureProperties["marker-color"].asString
             val markerSymbol = featureProperties["marker-symbol"].asString
             var icon: Icon
