@@ -224,7 +224,6 @@ class BankActivity : AppCompatActivity() {
         currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
         getCoinzData()
         coinzMapData = applicationContext.openFileInput("coinzmap.geojson").bufferedReader().use { it.readText() }
-        gold = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE).getFloat("GOLD", 0.0.toFloat()).toDouble()
         try {
             rates = JSONObject(coinzMapData).get("rates") as JSONObject
             bank_QUIDvalue.text = String.format(getString(R.string.RatesValue), rates.get("QUID"))

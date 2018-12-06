@@ -11,6 +11,7 @@ import android.support.test.rule.GrantPermissionRule
 import android.support.test.runner.AndroidJUnit4
 import org.hamcrest.Matchers
 import org.hamcrest.Matchers.startsWith
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,6 +28,11 @@ class FinalFullTest {
     @JvmField
     var mRuntimePermissionRule = GrantPermissionRule
             .grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
+
+    @Before
+    fun beforeTest() {
+
+    }
 
     @Test
     fun espressoFinalTest() {

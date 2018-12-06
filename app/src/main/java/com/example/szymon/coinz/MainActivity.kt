@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     private lateinit var locationLayerPlugin : LocationLayerPlugin
     private var locationEnabled = false
 
-    private var gold: Double? = null
+    private var gold = 0.0
     private var username: String? = null
     private var collectedCoinz: MutableList<HashMap<String, Any>> = arrayListOf()
     private var collectedID: MutableList<String> = arrayListOf()
@@ -383,7 +383,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     //If there was a wager going on, and player has run out of time, take gold from his account
                     if (!wager.isEmpty()) {
                         if (wager["Time"].toString().toInt() + wager["Start"].toString().toInt() - Timestamp.now().seconds <= 0) {
-                            gold = gold!! - wager["Reward"].toString().toInt()
+                            gold -= wager["Reward"].toString().toInt()
                             wager = HashMap()
                             displayFinishedWager("Failure")
                             mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
@@ -477,7 +477,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     //Update user data
     private fun setCoinzData() {
         val userData = HashMap<String, Any>()
-        userData["GOLD"] = gold!!
+        userData["GOLD"] = gold
         userData["CollectedID"] = collectedID
         userData["CollectedCoinz"] = collectedCoinz
         userData["LastDate"] = currentDate
@@ -501,7 +501,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         //If user has collected all coinz in a given day, give him extra 2500 gold
         if (!allCollectedToday && collectedID.size >= 50) {
             allCollectedToday = true
-            gold = gold!! + 2500
+            gold += 2500
         }
 
         //When user collects a coin and it is successfully added to Firestore, notify him of it by vibrating for 100 milliseconds
@@ -579,7 +579,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                                 quest["CompletionStage"] = quest["CompletionStage"].toString().toInt() + 1
                                 //if quest is completed, give player a promised reward
                                 if (quest["CompletionStage"].toString().toInt() >= quest["Amount"].toString().toInt()) {
-                                    gold = gold!! + quest["Reward"].toString().toDouble()
+                                    gold += quest["Reward"].toString().toDouble()
                                     Log.d(tag, "[checkCoinz] Quest completed ${quests.indexOf(quest)}, $gold")
                                     Toast.makeText(this, getString(R.string.QuestCompleted), Toast.LENGTH_LONG).show()
                                 }
@@ -594,7 +594,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
                             if (wager["CompletionStage"].toString().toInt() >= wager["Amount"].toString().toInt()) {
                                 wagerTimer.cancel()
-                                gold = gold!! + wager["Reward"].toString().toInt()
+                                gold += wager["Reward"].toString().toInt()
                                 wager = HashMap()
                                 displayFinishedWager("Success")
                             }
@@ -657,7 +657,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         updateWagerTimer()
         wagerTimer = object: CountDownTimer(timeLeft*1000, 1000){
             override fun onFinish() {
-                gold = gold!! - wager["Reward"].toString().toInt()
+                gold -= wager["Reward"].toString().toInt()
                 wager = HashMap()
                 mStore.collection("Coinz").document(mAuth.currentUser?.email!!)
                         .update("GOLD", gold,
@@ -817,8 +817,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
         downloadDate = settings.getString("lastDownloadDate", "")!!
         Log.d(tag, "[onStart] Recalled lastDownloadDate is '$downloadDate'")
-        gold = settings.getFloat("GOLD", 0.0.toFloat()).toDouble()
-        Log.d(tag, "[onStart] Recalled GOLD is '$gold'")
 
         //if there is a new day, download a new map
         currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
@@ -945,8 +943,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         val settings = getSharedPreferences(preferencesFile, Context.MODE_PRIVATE)
         val editor = settings.edit()
         editor.putString("lastDownloadDate", downloadDate)
-        Log.d(tag, "[onStop] Storing GOLD of '$gold'")
-        editor.putFloat("GOLD", gold!!.toFloat())
         editor.apply()
 
 
