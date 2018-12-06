@@ -22,7 +22,6 @@ import java.util.regex.Pattern
 class BankActivity : AppCompatActivity() {
 
     private val tag = "BankActivity"
-    private var preferencesFile = "MyPrefsFile"
 
     private lateinit var mAuth: FirebaseAuth
     private lateinit var mStore: FirebaseFirestore
