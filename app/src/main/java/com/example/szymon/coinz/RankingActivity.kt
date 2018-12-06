@@ -42,7 +42,7 @@ class RankingActivity : AppCompatActivity() {
     //function that displays ListView of players
     private fun displayRanking() {
 
-        if (userData.size <= 0) {
+        if (userData.size <= 1) {
             ranking_noPlayers.text = getString(R.string.RankingNoPlayers)
             ranking_noPlayers.visibility = View.VISIBLE
         } else {

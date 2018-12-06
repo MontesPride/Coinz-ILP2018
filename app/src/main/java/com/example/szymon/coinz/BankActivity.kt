@@ -234,11 +234,6 @@ class BankActivity : AppCompatActivity() {
         } catch (e: JSONException) {
             Snackbar.make(bank_exchangeRates, getString(R.string.DownloadMapDataFail), Snackbar.LENGTH_INDEFINITE).show()
         }
-        /*rates = JSONObject(coinzMapData).get("rates") as JSONObject
-        bank_QUIDvalue.text = String.format(getString(R.string.RatesValue), rates.get("QUID"))
-        bank_PENYvalue.text = String.format(getString(R.string.RatesValue), rates.get("PENY"))
-        bank_DOLRvalue.text = String.format(getString(R.string.RatesValue), rates.get("DOLR"))
-        bank_SHILvalue.text = String.format(getString(R.string.RatesValue), rates.get("SHIL"))*/
         bank_GOLDvalue.text = String.format(getString(R.string.GoldAmount), gold)
     }
 
@@ -291,7 +286,8 @@ class BankActivity : AppCompatActivity() {
                 }
                 .addOnFailureListener {
                     Log.d(tag, "[getCoinzData] ${it.message.toString()}")
-                    Toast.makeText(this, getString(R.string.DownloadDataFail), Toast.LENGTH_LONG).show()
+                    //Toast.makeText(this, getString(R.string.DownloadDataFail), Toast.LENGTH_LONG).show()
+                    bank_noCoinzCollected.text = getString(R.string.DownloadDataFail)
                 }
     }
 

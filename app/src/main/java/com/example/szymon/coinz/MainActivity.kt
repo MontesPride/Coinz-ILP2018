@@ -157,6 +157,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             finish()
         }
 
+        permissionsManager  = PermissionsManager(this)
+
         vibratorService = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
 
         invalidDateAndTimeSnackbar = Snackbar.make(mapboxMapView, getString(R.string.error_invalid_date_and_time), Snackbar.LENGTH_INDEFINITE)
@@ -259,11 +261,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Log.d(tag, "[enableLocation] Permissions are granted")
             initaliseLocationEngine()
             initialiseLocationLayer()
-            permissionsManager = PermissionsManager(this)
+            //permissionsManager = PermissionsManager(this)
             locationEnabled = true
         } else {
             Log.d(tag, "[enableLocation] Permissions are not granted")
-            permissionsManager = PermissionsManager(this)
+            //permissionsManager = PermissionsManager(this)
             permissionsManager.requestLocationPermissions(this)
         }
     }
