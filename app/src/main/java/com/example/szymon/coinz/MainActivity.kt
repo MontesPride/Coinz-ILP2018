@@ -741,7 +741,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
                     cameraMode = CameraMode.TRACKING
                     renderMode = RenderMode.NORMAL
                 }
-                val lifecycle = getLifecycle()
                 lifecycle.addObserver(locationLayerPlugin)
             }
         }

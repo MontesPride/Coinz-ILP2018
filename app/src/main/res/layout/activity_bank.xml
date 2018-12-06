@@ -36,17 +36,6 @@
 
     </TableRow>
 
-
-    <!--
-     <TextView
-         android:id="@+id/bank_bankTextView"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_below="@id/bank_buttons"
-         android:text="@string/Bank"
-         android:textAlignment="center"
-         android:textSize="40sp"/> -->
-
          <TableRow
              android:id="@+id/bank_goldRow"
              android:layout_width="match_parent"
