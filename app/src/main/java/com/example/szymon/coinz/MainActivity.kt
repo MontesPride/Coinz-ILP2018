@@ -8,7 +8,6 @@ import android.os.*
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.Menu
 import android.view.View
 import android.widget.Toast
 import com.google.firebase.Timestamp
@@ -263,6 +262,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             Log.d(tag, "[enableLocation] Permissions are granted")
             initaliseLocationEngine()
             initialiseLocationLayer()
+            //I have moved initialisation of permissionManager to onCreate because
+            //sometimes it wasn't initialised but still called onResume
             //permissionsManager = PermissionsManager(this)
             locationEnabled = true
         } else {
@@ -639,6 +640,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         userData["Rerolled"] = false
         userData["TransferHistory"] = listOf<HashMap<String, Any>>()
         userData["AllCollectedToday"] = false
+
         val amount = (3..6).shuffled().first()
         val currency = arrayListOf("QUID", "PENY", "DOLR", "SHIL").shuffled().first()
         val reward = arrayListOf(100, 150, 200, 300)[amount - 3]
@@ -649,6 +651,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
         quest["Reward"] = reward
         quest["CompletionStage"] = 0
         quests.add(quest)
+
         userData["Quests"] = quests
         userData["Wager"] = HashMap<String, Any>()
         userData["WageredToday"] = false
@@ -903,14 +906,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
             }
         }
 
+        //if the time and date are now correctly set up, hide a snackbar
         if (now().seconds >= lastTimestamp && invalidDateAndTimeSnackbar!!.isShown) {
             invalidDateAndTimeSnackbar?.dismiss()
         }
 
+        //if user somehow got there without logging in, move him to SignUpActivity
         if (mAuth.currentUser?.uid == null) {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
 
+        //fix from Piazza
         if (::locationEngine.isInitialized) {
                 try {
                     locationEngine.requestLocationUpdates()
@@ -968,12 +974,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
     public override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         mapView?.onSaveInstanceState(outState)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
     }
 
     //Just downloading a new map

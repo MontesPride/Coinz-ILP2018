@@ -20,7 +20,7 @@
         android:layout_marginStart="15dp"
         android:layout_gravity="top|start"
         android:visibility="gone"
-        android:background="#d3e4ff"/>
+        android:background="@drawable/rounded_textview"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/main_OpenMenu"
