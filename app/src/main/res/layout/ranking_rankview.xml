@@ -23,7 +23,7 @@
                 android:layout_gravity="end"
                 android:gravity="end"
                 android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:singleLine="true"
                 android:maxLines="1"
                 android:layout_marginBottom="5dp"

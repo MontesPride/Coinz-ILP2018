@@ -202,6 +202,9 @@ class BankActivity : AppCompatActivity() {
                     Log.d(tag, "[onClickListener] Invalid email")
                     bank_transferEmail.error = getString(R.string.error_invalid_email)
                     bank_transferEmail.requestFocus()
+                } else if (bank_transferEmail.text.toString().toLowerCase() == mAuth.currentUser?.email){
+                        bank_transferEmail.error = getString(R.string.TransferSameEmail)
+                        bank_transferEmail.requestFocus()
                 } else {
                     if (coinzExchanged >= 25) {
                         Log.d(tag, "[onClickListener] Transfering coinz")
@@ -291,6 +294,8 @@ class BankActivity : AppCompatActivity() {
 
     //updating logged in user's data and displaying it
     private fun setCoinzData(Operation: String) {
+        Log.d(tag, "[setCoinzData] Updating user's data")
+
         val userData = HashMap<String, Any>()
         userData["GOLD"] = gold
         userData["CollectedID"] = collectedID
@@ -333,14 +338,18 @@ class BankActivity : AppCompatActivity() {
 
     //transferring coinz to another player
     private fun transferCoinz(targetEmail: String, coinzTransferRate: Double, coinzValue: Double) {
-        if (targetEmail == mAuth.currentUser?.email) {
+
+        Log.d(tag, "$targetEmail, ${mAuth.currentUser?.email}")
+
+        if (targetEmail.toLowerCase() == mAuth.currentUser?.email) {
             bank_transferEmail.error = getString(R.string.TransferSameEmail)
             bank_transferEmail.requestFocus()
+            getCoinzData()
             return
         }
 
         //checking if user with given email address exists
-        mAuth.fetchSignInMethodsForEmail(targetEmail)
+        mAuth.fetchSignInMethodsForEmail(targetEmail.toLowerCase())
                 .addOnSuccessListener {
                     Log.d(tag, "[transferCoinz] ${it.signInMethods.toString()}")
                     if (it.signInMethods!!.size <= 0) {
@@ -350,7 +359,7 @@ class BankActivity : AppCompatActivity() {
                         return@addOnSuccessListener
                     } else {
                         //if that user exists, transfer gold to his account, create a mention in his transfer history and update logged in user's data
-                        mStore.collection("Coinz").document(targetEmail)
+                        mStore.collection("Coinz").document(targetEmail.toLowerCase())
                                 .get()
                                 .addOnSuccessListener { document ->
                                     @Suppress("UNCHECKED_CAST")
@@ -368,7 +377,7 @@ class BankActivity : AppCompatActivity() {
                                         targetTransferData["From"] = username
                                         targetTransferData["Amount"] = coinzTransferRate*coinzValue
                                         targetTransferHistory.add(targetTransferData)
-                                        mStore.collection("Coinz").document(targetEmail)
+                                        mStore.collection("Coinz").document(targetEmail.toLowerCase())
                                                 .update("GOLD", targetGOLD,
                                                         "CoinzReceived", targetCoinzReceived,
                                                         "TransferHistory", targetTransferHistory)

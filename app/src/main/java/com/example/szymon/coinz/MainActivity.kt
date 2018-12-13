@@ -611,7 +611,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, LocationEngineList
 
                         //remove collected markers from the map
                         for (marker in markers) {
-                            if (marker?.position == LatLng(coordinatesAsList[1], coordinatesAsList[0]) && marker.title == feature.properties()!!["currency"].asString && marker.snippet == feature.properties()!!["value"].asString) {
+                            if (marker?.position == LatLng(coordinatesAsList[1], coordinatesAsList[0]) && marker.title == feature.properties()!!["currency"].asString && marker.snippet == "Value: %.2f".format(feature.properties()!!["value"].asString.toDouble())) {
                                 Log.d(tag, "[checkCoinz] Removing marker")
                                 map?.removeMarker(marker)
                                 Log.d(tag, "[checkCoinz] Marker removed")
