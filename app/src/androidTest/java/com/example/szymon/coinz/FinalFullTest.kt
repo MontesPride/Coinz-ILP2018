@@ -34,7 +34,9 @@ import java.time.format.DateTimeFormatter
 @RunWith(AndroidJUnit4::class)
 class FinalFullTest {
 
-    //MAKE SURE
+    //THIS IS A COMPLETE TEST OF THE APP, UNFORTUNATELY IT REQUIRES THAT THE EspressoEmailFinal1@gmail.com account is deleted.
+    //I WASN'T ABLE TO DELETE THE ACCOUNT ON EACH START WITH CODE SO IT NEEDS TO BE DONE MANUALLY ON FIREBASE
+    //OTHER THAN THAT, TEST IS REPRODUCIBLE
 
     @Rule
     @JvmField
@@ -42,7 +44,7 @@ class FinalFullTest {
 
     @Rule
     @JvmField
-    var mRuntimePermissionRule = GrantPermissionRule
+    var mRuntimePermissionRule: GrantPermissionRule = GrantPermissionRule
             .grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
 
     fun withBoldStyle(): Matcher<View> {
@@ -58,7 +60,7 @@ class FinalFullTest {
         }
     }
 
-    fun withGridSize(size: Int): Matcher<View> {
+    private fun withGridSize(size: Int): Matcher<View> {
         return object : TypeSafeMatcher<View>() {
             public override fun matchesSafely(view: View): Boolean {
                 return (view as GridView).count >= size
@@ -69,7 +71,7 @@ class FinalFullTest {
         }
     }
 
-    fun withListSize(size: Int): Matcher<View> {
+    private fun withListSize(size: Int): Matcher<View> {
         return object : TypeSafeMatcher<View>() {
             public override fun matchesSafely(view: View): Boolean {
                 return (view as ListView).count >= size
@@ -119,16 +121,16 @@ class FinalFullTest {
         val espressoUser2 = createUserDocument("EspressoUsernameFinal2")
         espressoUser2["CoinzExchanged"] = 22
         espressoUser2["GOLD"] = 123.4
-        val CollectedCoinz1: MutableList<HashMap<String, Any>> = arrayListOf()
+        val collectedCoinz1: MutableList<HashMap<String, Any>> = arrayListOf()
         for (i in (0..5)) {
             val currencies = listOf("QUID", "PENY", "DOLR", "SHIL", "QUID", "PENY")
             val coin = HashMap<String, Any>()
             coin["Currency"] = currencies[i]
             coin["Value"] = (i+0.25)*2
             coin["Time"] = Timestamp.now().seconds
-            CollectedCoinz1.add(coin)
+            collectedCoinz1.add(coin)
         }
-        espressoUser2["CollectedCoinz"] = CollectedCoinz1
+        espressoUser2["CollectedCoinz"] = collectedCoinz1
         FirebaseAuth.getInstance().createUserWithEmailAndPassword("espressoemailfinal2@gmail.com", "EspressoPasswordFinal2")
                 .addOnSuccessListener {
                     val profileUpdates = UserProfileChangeRequest.Builder()
@@ -142,6 +144,11 @@ class FinalFullTest {
         val espressoUser3 = createUserDocument("EspressoUsernameFinal3")
         espressoUser3["CoinzReceived"] = 23
         espressoUser3["GOLD"] = 567.8
+        val transfer = HashMap<String, Any>()
+        transfer["Amount"] = 999.9
+        transfer["From"] = "Admin"
+        val transfers = arrayListOf(transfer)
+        espressoUser3["TransferHistory"] = transfers
         FirebaseAuth.getInstance().createUserWithEmailAndPassword("espressoemailfinal3@gmail.com", "EspressoPasswordFinal3")
                 .addOnSuccessListener {
                     val profileUpdates = UserProfileChangeRequest.Builder()
@@ -354,7 +361,7 @@ class FinalFullTest {
                 .check(matches(isDisplayed()))
 
         Espresso.onView(ViewMatchers.withId(R.id.main_WagerTextView))
-                .check(matches(withText(startsWith("Time Left: 30"))))
+                .check(matches(withText(startsWith("Time Left:"))))
 
         Espresso.onView(ViewMatchers.withId(R.id.main_OpenMenu))
                 .perform(ViewActions.click())
