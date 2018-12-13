@@ -87,6 +87,7 @@
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_too_long_username">This username is too long</string>
     <string name="error_incorrect_email">We can\'t find that account</string>
     <string name="error_no_network_connection">Check your network connection</string>
     <string name="error_firebase_no_network_connection">A network error (such as timeout, interrupted connection or unreachable host) has occurred.</string>

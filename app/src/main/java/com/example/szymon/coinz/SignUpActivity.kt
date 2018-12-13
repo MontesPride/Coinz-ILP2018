@@ -125,6 +125,10 @@ class SignUpActivity : AppCompatActivity() {
             signup_username.error = getString(R.string.error_invalid_username)
             focusView = signup_username
             cancel = true
+        }  else if (usernameStr.length > 30) {
+            signup_username.error = getString(R.string.error_too_long_username)
+            focusView = signup_username
+            cancel = true
         }
 
         if (cancel) {
