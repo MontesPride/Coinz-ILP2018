@@ -1,6 +1,6 @@
-#Coinz-ILP2018
+**#Coinz-ILP2018**
 
-Szymon Filipiak s1651272
+**Szymon Filipiak s1651272**
 
 My first Android game. It is a prototype of a multi-player collaborative location-based game where players collect and exchange virtual coins which have been scattered at random around the University of Edinburgh’s Central Area. In the Coinz game, the locations of the coins are specified on a map. Coins are collected by visiting their location on the map, by which we mean that the player literally moves to that location with their mobile phone. A new map is released every day; each map has fifty coins. The object of the game is simply to collect as much money as possible.
 
@@ -8,4 +8,4 @@ During gameplay, players collect coins, storing them in a local wallet, and late
 
 Graphical design wasn't my priority so it doesn't look great but I believe it's bearable.
 
-See ilp_report.pdf for an in-depth overwiev and some screenshots.
+**See ilp_report.pdf for an in-depth overwiev and some screenshots.**
